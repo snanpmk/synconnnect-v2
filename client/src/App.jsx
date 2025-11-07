@@ -4,24 +4,29 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import AdminRoutes from "./routes/AdminRoutes";
 import ClientRoutes from "./routes/ClientRoutes";
 import StoreRoutes from "./routes/StoreRoutes";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 function App() {
+  const queryClient = new QueryClient();
+  const GOOGLE_CLIENT_ID = import.meta.env.VITE_APP_GOOGLE_CLIENT_ID;
+
   return (
-    <Router>
-      <Routes>
-        {/* Admin routes */}
-        <Route path="/admin/*" element={<AdminRoutes />} />
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <QueryClientProvider client={queryClient}>
+        <Router>
+          <Routes>
+            <Route path="/admin/*" element={<AdminRoutes />} />
 
-        {/* Client routes */}
-        <Route path="/client/*" element={<ClientRoutes />} />
+            <Route path="/client/*" element={<ClientRoutes />} />
 
-        {/* Store / Merchant routes */}
-        <Route path="/store/*" element={<StoreRoutes />} />
+            <Route path="/store/*" element={<StoreRoutes />} />
 
-        {/* Fallback */}
-        <Route path="*" element={<div>404 Not Found</div>} />
-      </Routes>
-    </Router>
+            <Route path="*" element={<div>404 Not Found</div>} />
+          </Routes>
+        </Router>
+      </QueryClientProvider>
+    </GoogleOAuthProvider>
   );
 }
 

@@ -36,9 +36,37 @@ const initialUsersData = [
 ];
 
 // -----------------------------------------------------------------------------
-// 🧱 AddUserModal (with React Hook Form)
+// 🧱 Confirm Helper (inline custom confirm toast)
 // -----------------------------------------------------------------------------
-const AddUserModal = ({ isOpen, onClose, onAdd }) => {
+const confirmAction = (message, onConfirm) => {
+  toast((t) => (
+    <div className="flex flex-col gap-3">
+      <p className="text-sm font-medium text-gray-800">{message}</p>
+      <div className="flex gap-2 justify-end">
+        <button
+          onClick={() => {
+            toast.dismiss(t.id);
+            onConfirm();
+          }}
+          className="bg-indigo-600 text-white text-xs px-3 py-1.5 rounded-md hover:bg-indigo-700"
+        >
+          Confirm
+        </button>
+        <button
+          onClick={() => toast.dismiss(t.id)}
+          className="bg-gray-200 text-gray-800 text-xs px-3 py-1.5 rounded-md hover:bg-gray-300"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  ));
+};
+
+// -----------------------------------------------------------------------------
+// 🧱 AddUserModal (Add + Edit mode)
+// -----------------------------------------------------------------------------
+const AddUserModal = ({ isOpen, onClose, onAdd, editingUser }) => {
   const modalRef = useRef(null);
 
   const {
@@ -58,14 +86,22 @@ const AddUserModal = ({ isOpen, onClose, onAdd }) => {
 
   const accountType = watch("accountType");
 
-  console.log(accountType);
-
-  // Reset form each time modal opens
+  // Prefill when editing
   useEffect(() => {
-    if (isOpen) reset();
-  }, [isOpen, reset]);
+    if (isOpen) {
+      if (editingUser) {
+        reset({
+          fullName: editingUser.fullName,
+          email: editingUser.email,
+          accountType: editingUser.accountType,
+        });
+      } else {
+        reset();
+      }
+    }
+  }, [isOpen, editingUser, reset]);
 
-  // Close modal when clicking outside
+  // Close modal on outside click
   useEffect(() => {
     const handler = (e) => {
       if (!isOpen) return;
@@ -76,9 +112,13 @@ const AddUserModal = ({ isOpen, onClose, onAdd }) => {
   }, [isOpen, onClose]);
 
   const onSubmit = (data) => {
-    console.log("✅ Submitted Form Data:", data);
-    toast.success("Form submitted successfully!");
-    // onAdd(data); // uncomment to actually add to table
+    if (editingUser) {
+      onAdd({ ...editingUser, ...data });
+      toast.success("User updated successfully!");
+    } else {
+      onAdd(data);
+      toast.success("User added successfully!");
+    }
     onClose();
   };
 
@@ -115,7 +155,7 @@ const AddUserModal = ({ isOpen, onClose, onAdd }) => {
         className="bg-white rounded-2xl p-6 w-[92%] sm:w-full max-w-md shadow-2xl border border-gray-100"
       >
         <h2 className="text-lg font-semibold mb-4 text-gray-800">
-          Add New User
+          {editingUser ? "Edit User" : "Add New User"}
         </h2>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -167,7 +207,7 @@ const AddUserModal = ({ isOpen, onClose, onAdd }) => {
             type="submit"
             className="w-full bg-indigo-600 text-white rounded-lg py-2 mt-2 font-medium hover:bg-indigo-700 transition-colors"
           >
-            Submit
+            {editingUser ? "Update" : "Submit"}
           </button>
         </form>
       </div>
@@ -212,68 +252,68 @@ const UserRow = ({
   onCardChange,
   onPaymentChange,
   onDelete,
-}) => {
-  return (
-    <tr className="hover:bg-indigo-50/50 transition-all duration-150">
-      <td className="px-4 sm:px-6 py-4">
-        <div className="font-medium text-gray-900">{user.fullName}</div>
-        <div className="text-xs text-gray-500">{user.email}</div>
-        <div className="text-xs italic text-indigo-500">{user.jobTitle}</div>
-      </td>
+  onEdit,
+}) => (
+  <tr className="hover:bg-indigo-50/50 transition-all duration-150">
+    <td className="px-4 sm:px-6 py-4">
+      <div className="font-medium text-gray-900">{user.fullName}</div>
+      <div className="text-xs text-gray-500">{user.email}</div>
+      <div className="text-xs italic text-indigo-500">{user.jobTitle}</div>
+    </td>
 
-      <td className="px-4 sm:px-6 py-4 w-36">
-        <select
-          value={user.accountType}
-          onChange={(e) => onAccountChange(user.id, e.target.value)}
-          className="p-2 outline-none rounded-lg border border-gray-200"
-        >
-          <option value="individual">Individual</option>
-          <option value="business">Business</option>
-        </select>
-      </td>
+    <td className="px-4 sm:px-6 py-4 w-36">
+      <select
+        value={user.accountType}
+        onChange={(e) => onAccountChange(user.id, e.target.value)}
+        className="p-2 outline-none rounded-lg border border-gray-200"
+      >
+        <option value="individual">Individual</option>
+        <option value="business">Business</option>
+      </select>
+    </td>
 
-      <td className="px-4 sm:px-6 py-4 w-40">
-        <select
-          value={user.cardStatus}
-          onChange={(e) => onCardChange(user.id, e.target.value)}
-          className="p-2 outline-none rounded-lg border border-gray-200"
-        >
-          <option>Draft</option>
-          <option>Designed</option>
-          <option>Delivered</option>
-        </select>
-      </td>
+    <td className="px-4 sm:px-6 py-4 w-40">
+      <select
+        value={user.cardStatus}
+        onChange={(e) => onCardChange(user.id, e.target.value)}
+        className="p-2 outline-none rounded-lg border border-gray-200"
+      >
+        <option>Draft</option>
+        <option>Designed</option>
+        <option>Delivered</option>
+      </select>
+    </td>
 
-      <td className="px-4 sm:px-6 py-4 w-40">
-        <select
-          value={user.paymentStatus}
-          onChange={(e) => onPaymentChange(user.id, e.target.value)}
-          className="p-2 outline-none rounded-lg border border-gray-200"
-        >
-          <option value="pending">Pending</option>
-          <option value="active">Active</option>
-          <option value="expired">Expired</option>
-        </select>
-      </td>
+    <td className="px-4 sm:px-6 py-4 w-40">
+      <select
+        value={user.paymentStatus}
+        onChange={(e) => onPaymentChange(user.id, e.target.value)}
+        className="p-2 outline-none rounded-lg border border-gray-200"
+      >
+        <option value="pending">Pending</option>
+        <option value="active">Active</option>
+        <option value="expired">Expired</option>
+      </select>
+    </td>
 
-      <td className="px-4 sm:px-6 py-4 flex gap-2">
-        <button
-          className="text-indigo-600 hover:text-indigo-800 p-1.5 rounded-full hover:bg-indigo-100"
-          title="Edit User"
-        >
-          <Edit className="w-5 h-5" />
-        </button>
-        <button
-          onClick={() => onDelete(user.id)}
-          className="text-red-600 hover:text-red-800 p-1.5 rounded-full hover:bg-red-100"
-          title="Delete User"
-        >
-          <Trash2 className="w-5 h-5" />
-        </button>
-      </td>
-    </tr>
-  );
-};
+    <td className="px-4 sm:px-6 py-4 flex gap-2">
+      <button
+        onClick={() => onEdit(user)}
+        className="text-indigo-600 hover:text-indigo-800 p-1.5 rounded-full hover:bg-indigo-100"
+        title="Edit User"
+      >
+        <Edit className="w-5 h-5" />
+      </button>
+      <button
+        onClick={() => onDelete(user.id)}
+        className="text-red-600 hover:text-red-800 p-1.5 rounded-full hover:bg-red-100"
+        title="Delete User"
+      >
+        <Trash2 className="w-5 h-5" />
+      </button>
+    </td>
+  </tr>
+);
 
 // -----------------------------------------------------------------------------
 // 🧱 UserTable
@@ -284,6 +324,7 @@ const UserTable = ({
   onCardChange,
   onPaymentChange,
   onDelete,
+  onEdit,
 }) => (
   <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
     <div className="overflow-x-auto">
@@ -298,6 +339,7 @@ const UserTable = ({
               onCardChange={onCardChange}
               onPaymentChange={onPaymentChange}
               onDelete={onDelete}
+              onEdit={onEdit}
             />
           ))}
         </tbody>
@@ -312,35 +354,56 @@ const UserTable = ({
 const ManageUsersView = () => {
   const [users, setUsers] = useState(initialUsersData);
   const [showModal, setShowModal] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+
+  const updateUser = (data) => {
+    setUsers((prev) => {
+      const exists = prev.some((u) => u.id === data.id);
+      if (exists) {
+        return prev.map((u) => (u.id === data.id ? data : u));
+      } else {
+        return [...prev, { ...data, id: prev.length + 1 }];
+      }
+    });
+  };
 
   const handleAccountTypeChange = (id, newType) => {
-    setUsers((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, accountType: newType } : u))
-    );
-    toast.success(`Account type updated to ${newType}`);
+    confirmAction("Change account type?", () => {
+      setUsers((prev) =>
+        prev.map((u) => (u.id === id ? { ...u, accountType: newType } : u))
+      );
+      toast.success("Account type updated!");
+    });
   };
 
   const handleCardStatusChange = (id, newStatus) => {
-    setUsers((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, cardStatus: newStatus } : u))
-    );
-    toast.success(`Card status updated to ${newStatus}`);
+    confirmAction("Change card status?", () => {
+      setUsers((prev) =>
+        prev.map((u) => (u.id === id ? { ...u, cardStatus: newStatus } : u))
+      );
+      toast.success("Card status updated!");
+    });
   };
 
   const handlePaymentStatusChange = (id, newStatus) => {
-    setUsers((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, paymentStatus: newStatus } : u))
-    );
-    toast.success(`Payment status updated to ${newStatus}`);
-  };
-
-  const handleAddUser = (newUser) => {
-    setUsers((prev) => [...prev, { ...newUser, id: prev.length + 1 }]);
+    confirmAction("Change payment status?", () => {
+      setUsers((prev) =>
+        prev.map((u) => (u.id === id ? { ...u, paymentStatus: newStatus } : u))
+      );
+      toast.success("Payment status updated!");
+    });
   };
 
   const handleDelete = (id) => {
-    setUsers((prev) => prev.filter((u) => u.id !== id));
-    toast.success("User deleted successfully!");
+    confirmAction("Are you sure you want to delete this user?", () => {
+      setUsers((prev) => prev.filter((u) => u.id !== id));
+      toast.success("User deleted!");
+    });
+  };
+
+  const handleEdit = (user) => {
+    setEditingUser(user);
+    setShowModal(true);
   };
 
   return (
@@ -349,7 +412,10 @@ const ManageUsersView = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
         <h1 className="text-xl font-semibold text-gray-800">Manage Users</h1>
         <button
-          onClick={() => setShowModal(true)}
+          onClick={() => {
+            setEditingUser(null);
+            setShowModal(true);
+          }}
           className="flex items-center justify-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl transition-all shadow-md w-full sm:w-auto"
         >
           <Plus className="w-5 h-5" />
@@ -360,7 +426,8 @@ const ManageUsersView = () => {
       <AddUserModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        onAdd={handleAddUser}
+        onAdd={updateUser}
+        editingUser={editingUser}
       />
 
       <UserTable
@@ -369,6 +436,7 @@ const ManageUsersView = () => {
         onCardChange={handleCardStatusChange}
         onPaymentChange={handlePaymentStatusChange}
         onDelete={handleDelete}
+        onEdit={handleEdit}
       />
     </div>
   );

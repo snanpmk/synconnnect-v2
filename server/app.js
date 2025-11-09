@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import routes from "./routes/index.js";
 import errorHandler from "./middleware/error.middleware.js";
 import corsMiddleware from "./config//cors.js";
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 
@@ -13,6 +14,8 @@ const app = express();
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
 app.use(corsMiddleware);
 app.use(helmet());
 app.use(morgan("dev"));

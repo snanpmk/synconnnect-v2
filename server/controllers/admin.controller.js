@@ -56,3 +56,44 @@ export const addUserByAdmin = async (req, res) => {
       .json({ message: "Failed to create user", error: error.message });
   }
 };
+
+// ✅ Get all users (Admin only)
+export const getUsers = async (req, res) => {
+  try {
+    // Optional filters or query params
+    const { accountType, paymentStatus, search } = req.query;
+
+    const filter = {};
+
+    // 🧩 Apply filters if present
+    if (accountType) filter.accountType = accountType;
+    if (paymentStatus) filter.paymentStatus = paymentStatus;
+    if (search) {
+      filter.$or = [
+        { fullName: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // 🔍 Fetch all users
+    const users = await User.find()
+      .sort({ createdAt: -1 })
+      .select("-password"); // exclude password if stored
+
+      
+
+    logger.info(`👥 Fetched ${users.length} users from DB`);
+
+    res.status(200).json({
+      message: "Users fetched successfully",
+      total: users.length,
+      users,
+    });
+  } catch (error) {
+    logger.error(`Failed to fetch users: ${error.message}`);
+    res.status(500).json({
+      message: "Failed to fetch users",
+      error: error.message,
+    });
+  }
+};

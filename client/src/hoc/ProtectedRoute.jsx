@@ -1,15 +1,58 @@
-import React from "react";
-import { Navigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Navigate, useLocation } from "react-router-dom";
 import useAuthStore from "../store/useAuthStore";
+import { getAccessTokenFromRefresh } from "../pages/auth/utils/getAccessTokenFromRefresh";
 
-const ProtectedRoute = ({ children, adminOnly = false }) => {
-  const { accessToken, user } = useAuthStore();
+const ProtectedRoute = ({ children }) => {
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const setAccessToken = useAuthStore((state) => state.setAccessToken);
+  const location = useLocation();
 
-  if (!accessToken) return <Navigate to="/login" replace />;
-  if (adminOnly && user?.role !== "admin")
-    return <Navigate to="/dashboard" replace />;
+  const [isLoading, setIsLoading] = useState(true);
+  const isLoggedIn = !!accessToken;
 
-  return children;
+  useEffect(() => {
+    if (!isLoggedIn) {
+      localStorage.setItem("intendedPath", location.pathname);
+
+      const attemptTokenRefresh = async () => {
+        try {
+          const newToken = await getAccessTokenFromRefresh();
+          if (newToken) {
+            setAccessToken(newToken);
+          }
+        } catch (error) {
+          console.error("Token refresh failed:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      attemptTokenRefresh();
+    } else {
+      setIsLoading(false);
+    }
+  }, [isLoggedIn, location.pathname, setAccessToken]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen ">
+        <div
+          className="w-12 h-12 border-4 border-t-4  border-gray-200 rounded-full animate-spin"
+          role="status"
+          aria-live="polite"
+        >
+          <span className="sr-only">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!useAuthStore.getState().accessToken) {
+    return <Navigate to={"/login"} replace />;
+  }
+
+  return <>{children}</>;
 };
 
 export default ProtectedRoute;

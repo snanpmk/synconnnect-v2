@@ -6,6 +6,8 @@ import ClientRoutes from "./routes/ClientRoutes";
 import StoreRoutes from "./routes/StoreRoutes";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import LoginPage from "./pages/auth/Login";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   const queryClient = new QueryClient();
@@ -13,14 +15,16 @@ function App() {
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <Toaster position="top-right" reverseOrder={false} />
       <QueryClientProvider client={queryClient}>
         <Router>
           <Routes>
             <Route path="/admin/*" element={<AdminRoutes />} />
 
-            <Route path="/client/*" element={<ClientRoutes />} />
+            <Route path="/*" element={<ClientRoutes />} />
 
-            <Route path="/store/*" element={<StoreRoutes />} />
+            {/* <Route path="/*" element={<StoreRoutes />} /> */}
+            <Route path="/login" element={<LoginPage />} />
 
             <Route path="*" element={<div>404 Not Found</div>} />
           </Routes>

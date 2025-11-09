@@ -82,7 +82,11 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
-
+    isSuperAdmin: {
+      required: true,
+      default: false,
+      type: Boolean,
+    },
     socialLinks: {
       // 📞 Direct Contact Methods
       call: { type: String, trim: true }, // phone number or tel: link

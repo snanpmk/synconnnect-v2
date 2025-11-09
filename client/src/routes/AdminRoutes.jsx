@@ -11,17 +11,15 @@ export default function AdminRoutes() {
       <Route
         path="dashboard"
         element={
-        //   <ProtectedRoute role="admin">
+          <ProtectedRoute role="admin">
             <Dashboard />
-        //   </ProtectedRoute>
+          </ProtectedRoute>
         }
       />
       <Route
         path="users"
         element={
-          <ProtectedRoute role="admin">
-            {/* <Users /> */}
-          </ProtectedRoute>
+          <ProtectedRoute role="admin">{/* <Users /> */}</ProtectedRoute>
         }
       />
     </Routes>

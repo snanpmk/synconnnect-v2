@@ -4,6 +4,7 @@ import { Routes, Route } from "react-router-dom";
 // import Home from "../pages/client/Home";
 // import Profile from "../pages/client/Profile";
 import ProtectedRoute from "../hoc/ProtectedRoute";
+import Home from "../pages/client/Home";
 
 export default function ClientRoutes() {
   return (
@@ -11,18 +12,14 @@ export default function ClientRoutes() {
       <Route
         path="home"
         element={
-          <ProtectedRoute role="client">
-            {/* <Home /> */}
+          <ProtectedRoute>
+            <Home />
           </ProtectedRoute>
         }
       />
       <Route
         path="profile"
-        element={
-          <ProtectedRoute role="client">
-            {/* <Profile /> */}
-          </ProtectedRoute>
-        }
+        element={<ProtectedRoute>{/* <Profile /> */}</ProtectedRoute>}
       />
     </Routes>
   );

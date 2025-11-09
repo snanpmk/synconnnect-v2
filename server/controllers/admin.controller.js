@@ -4,9 +4,9 @@ import logger from "../utils/logger.js";
 
 export const addUserByAdmin = async (req, res) => {
   try {
-    const { fullName, email } = req.body;
+    const { fullName, email, accountType } = req.body;
 
-    if (!fullName || !email) {
+    if (!fullName || !email || !accountType) {
       return res.status(400).json({ message: "Name and email are required" });
     }
 
@@ -23,7 +23,7 @@ export const addUserByAdmin = async (req, res) => {
       fullName,
       email,
       paymentStatus: "pending",
-      accountType: "individual",
+      accountType,
     });
 
     // 3️⃣ Send welcome email via SendGrid
@@ -57,17 +57,17 @@ export const addUserByAdmin = async (req, res) => {
   }
 };
 
-// ✅ Get all users (Admin only)
 export const getUsers = async (req, res) => {
   try {
-    // Optional filters or query params
     const { accountType, paymentStatus, search } = req.query;
 
-    const filter = {};
-
-    // 🧩 Apply filters if present
+    const filter = {
+      $or: [{ isSuperAdmin: { $exists: false } }, { isSuperAdmin: false }],
+    };
+    // 🧩 Optional filters
     if (accountType) filter.accountType = accountType;
     if (paymentStatus) filter.paymentStatus = paymentStatus;
+
     if (search) {
       filter.$or = [
         { fullName: { $regex: search, $options: "i" } },
@@ -75,12 +75,9 @@ export const getUsers = async (req, res) => {
       ];
     }
 
-    // 🔍 Fetch all users
-    const users = await User.find()
+    const users = await User.find(filter)
       .sort({ createdAt: -1 })
-      .select("-password"); // exclude password if stored
-
-      
+      .select("-password -isSuperAdmin");
 
     logger.info(`👥 Fetched ${users.length} users from DB`);
 
@@ -93,6 +90,91 @@ export const getUsers = async (req, res) => {
     logger.error(`Failed to fetch users: ${error.message}`);
     res.status(500).json({
       message: "Failed to fetch users",
+      error: error.message,
+    });
+  }
+};
+
+export const deleteUserByAdmin = async (req, res) => {
+  try {
+    // 1️⃣ Get ID from query parameters
+    const userId = req.query.id;
+
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ message: "User ID is required in the query parameters" });
+    }
+
+    // 2️⃣ Find and delete the user
+    const deletedUser = await User.findByIdAndDelete(userId);
+
+    if (!deletedUser) {
+      return res
+        .status(404)
+        .json({ message: `User with ID ${userId} not found` });
+    }
+
+    logger.info(`🗑️ User ${userId} (${deletedUser.email}) deleted by admin.`);
+
+    // 3️⃣ Respond
+    res.status(200).json({
+      message: `User ${userId} deleted successfully`,
+      deletedUserId: userId,
+    });
+  } catch (error) {
+    logger.error(`Admin delete user failed: ${error.message}`);
+    res.status(500).json({
+      message: "Failed to delete user",
+      error: error.message,
+    });
+  }
+};
+
+export const editUserByAdmin = async (req, res) => {
+  try {
+    // 1️⃣ Get ID from query parameters and update fields from body
+    const userId = req.query.id;
+    const updateFields = req.body; // Expecting fields like { fullName: "New Name", accountType: "pro" }
+    console.log(req.body,'reeeeeeeeeeeeeeeee');
+
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ message: "User ID is required in the query parameters" });
+    }
+
+    // Optional: Check if body is empty or contains sensitive/unallowed fields
+    if (Object.keys(updateFields).length === 0) {
+      return res
+        .status(400)
+        .json({ message: "Update fields are required in the request body" });
+    }
+
+    // 2️⃣ Find and update the user
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: updateFields },
+      { new: true, runValidators: true } // 'new: true' returns the updated document
+    ).select("-password -isSuperAdmin");
+
+    if (!updatedUser) {
+      return res
+        .status(404)
+        .json({ message: `User with ID ${userId} not found` });
+    }
+
+    logger.info(`✏️ User ${userId} (${updatedUser.email}) updated by admin.`);
+
+    // 3️⃣ Respond
+    res.status(200).json({
+      message: `User ${userId} updated successfully`,
+      user: updatedUser,
+    });
+  } catch (error) {
+    logger.error(`Admin edit user failed: ${error.message}`);
+    res.status(500).json({
+      message: "Failed to update user",
       error: error.message,
     });
   }

@@ -52,8 +52,6 @@ export const googleAuthController = async (req, res) => {
     // 3️⃣ Check if user exists or create one
     let user = await User.findOne({ email });
 
-    console.log(user);
-    console.log(user.isSuperAdmin);
 
     let userStatus = "existing";
 

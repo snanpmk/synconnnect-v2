@@ -1,8 +1,13 @@
 import express from "express";
-import { addUserByAdmin, getUsers } from "../controllers/admin.controller.js";
+import {
+  addUserByAdmin,
+  deleteUserByAdmin,
+  editUserByAdmin,
+  getUsers,
+} from "../controllers/admin.controller.js";
 const router = express.Router();
 
-router.post("/add-user", addUserByAdmin);
+router.post("/user/add", addUserByAdmin);
 
 router.get("/users", getUsers);
 
@@ -12,9 +17,9 @@ router.get("/users", (req, res) => {
 });
 
 // Delete a user
-router.delete("/users/:id", (req, res) => {
-  res.json({ message: `User ${req.params.id} deleted` });
-});
+router.delete("/users/delete/", deleteUserByAdmin);
+
+router.put("/users/edit/", editUserByAdmin);
 
 // System stats
 router.get("/stats", (req, res) => {

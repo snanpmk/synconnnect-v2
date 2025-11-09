@@ -5,7 +5,8 @@ const usePostData = (options = {}) => {
   const queryClient = useQueryClient();
   const { jsonFetcher } = useFetcher();
   return useMutation({
-    mutationFn: ({ url, data }) => jsonFetcher({ url, method: "POST", data }),
+    mutationFn: ({ url, method = "POST", data }) =>
+      jsonFetcher({ url, method, data }),
     onSuccess: (data, variables) => {
       if (options?.invalidateQueries) {
         queryClient.invalidateQueries({ queryKey: options.invalidateQueries });

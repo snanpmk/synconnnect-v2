@@ -42,8 +42,18 @@ const userSchema = new mongoose.Schema(
       enum: ["Draft", "Designed", "Delivered"],
       default: "Draft",
     },
+    setupStatus: {
+      type: Number, // Using Number is more efficient than String for enums
+      enum: [0, 1, 2, 3], // Numerical mapping for efficient storage
+      default: 0,
+    },
 
-    // ✅ Distinguish between user types
+    // 0	Not Started	"Not Started " (Note the extra space)
+    // 1	Started	"Started"
+    // 2	Ongoing	"Ongoing"
+    // 3	Completed
+
+    
     accountType: {
       type: String,
       enum: ["individual", "business"],

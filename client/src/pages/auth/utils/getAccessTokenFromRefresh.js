@@ -7,7 +7,6 @@ export const getAccessTokenFromRefresh = async () => {
       { withCredentials: true }
     );
     const token = await res.data.accessToken;
-    console.log(token);
 
     return token;
   } catch (err) {

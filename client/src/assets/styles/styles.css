@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+/* Optionally add your global overrides */
+html,
+body {
+  @apply min-h-screen bg-gradient-to-b from-slate-50 to-blue-50 text-gray-900;
+  /* Scroll behavior is already smooth, keeping it here for clarity */
+  scroll-behavior: smooth;
+}
+
+/* HIDE SCROLLBAR STYLES */
+
+/* For Internet Explorer and Edge */
+body {
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+/* For Firefox */
+body {
+  scrollbar-width: none; /* Firefox */
+}
+
+/* For Chrome, Safari, and Opera (Webkit/Blink) */
+body::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  transition: all 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes zoomIn {
+  from {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.8s ease-in-out both;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.8s ease-in-out both;
+}
+
+.animate-zoomIn {
+  animation: zoomIn 2.5s ease-in-out both;
+}
+
+.delay-100 {
+  animation-delay: 0.1s;
+}
+.delay-200 {
+  animation-delay: 0.2s;
+}
+.delay-300 {
+  animation-delay: 0.3s;
+}

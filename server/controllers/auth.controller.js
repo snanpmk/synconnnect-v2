@@ -50,8 +50,7 @@ export const googleAuthController = async (req, res) => {
     }
 
     // 3️⃣ Check if user exists or create one
-    let user = await User.findOne({ email });
-
+    let user = await User.findOne({ email }).select("-password");
 
     let userStatus = "existing";
 
@@ -89,17 +88,17 @@ export const googleAuthController = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    // 6️⃣ Build response object
+    const responseUser = {
+      _id: user._id,
+      email: user.email,
+      fullName: user.fullName,
+      ...(user.isSuperAdmin && { isSuperAdmin: true }),
+    };
+
     const response = {
       message: "Login successful",
       status: userStatus, // "new" or "existing"
-      user: {
-        name: user.fullName,
-        email: user.email,
-        picture: user.profilePicUrl,
-        paymentStatus: user.paymentStatus,
-        ...(user?.isSuperAdmin && { isSuperAdmin: user?.isSuperAdmin }),
-      },
+      user: responseUser,
       accessToken,
     };
 
@@ -122,7 +121,7 @@ export const googleAuthController = async (req, res) => {
 export const refreshAccessToken = async (req, res) => {
   try {
     const refreshToken = req.cookies.refresh_token;
-      
+
     if (!refreshToken)
       return res.status(401).json({ message: "No refresh token found" });
 

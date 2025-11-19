@@ -20,7 +20,7 @@ const useGoogleAuthApi = () => {
   const onSuccess = (res) => {
     const { user, accessToken, message } = res;
     console.log(res);
-
+    localStorage.setItem("userId", user?._id);
     setUser(user);
     setAccessToken(accessToken);
     toast.success(message, "success");

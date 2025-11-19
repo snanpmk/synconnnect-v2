@@ -4,6 +4,7 @@ import config from "./env.js";
 const allowedOrigins = [
   config.CLIENT_URL, // active environment URL
   "http://localhost:2000", // always allow dev
+  "http://localhost:5174", // always allow dev
   "http://localhost:5173", // always allow dev
   "https://synconnect.in", // always allow prod
   "https://www.synconnect.in",

@@ -5,21 +5,21 @@ import {
   editUserByAdmin,
   getUsers,
 } from "../controllers/admin.controller.js";
+import { isAdminAuth } from "../middleware/auth.middleware.js";
 const router = express.Router();
 
-router.post("/user/add", addUserByAdmin);
+router.post("/user/add", isAdminAuth, addUserByAdmin);
 
-router.get("/users", getUsers);
+router.get("/users", isAdminAuth, getUsers);
 
+// Delete a user
+router.delete("/users/delete/", isAdminAuth, deleteUserByAdmin);
+
+router.put("/users/edit/", isAdminAuth, editUserByAdmin);
 // Get all users
 router.get("/users", (req, res) => {
   res.json({ message: "Fetched all users" });
 });
-
-// Delete a user
-router.delete("/users/delete/", deleteUserByAdmin);
-
-router.put("/users/edit/", editUserByAdmin);
 
 // System stats
 router.get("/stats", (req, res) => {

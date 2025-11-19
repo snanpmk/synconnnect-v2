@@ -2,14 +2,9 @@ import { useState, useEffect } from "react";
 import { Plus, Trash2, Edit } from "lucide-react";
 import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
-// Assuming AdminLayout, useGetData, and usePostData are correctly defined in your project structure
 import AdminLayout from "./layout/AdminLayout";
 import useGetData from "../../api/useGetData";
 import usePostData from "../../api/usePostData";
-
-// ---
-// UserFormModal Component
-// ---
 
 const UserFormModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
   const isEditing = !!selectedUser;
@@ -310,15 +305,40 @@ const ManageUsersView = () => {
                 <th className="p-3 text-right">Actions</th>
               </tr>
             </thead>
+
             <tbody>
               {users?.map((user) => (
                 <tr
                   key={user._id}
                   className="border-b hover:bg-gray-50 transition"
                 >
-                  <td className="p-3">{user.fullName}</td>
+                  {/* Full Name + Avatar */}
+                  <td className="p-3 flex items-center gap-3">
+                    {user.profilePicUrl ? (
+                      <img
+                        src={user.profilePicUrl}
+                        alt={user.fullName}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div
+                        className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 
+             flex items-center justify-center text-white font-semibold"
+                      >
+                        {user.fullName?.charAt(0)?.toUpperCase()}
+                      </div>
+                    )}
+
+                    <span>{user.fullName}</span>
+                  </td>
+
+                  {/* Email */}
                   <td className="p-3">{user.email}</td>
+
+                  {/* Account Type */}
                   <td className="p-3 capitalize">{user.accountType}</td>
+
+                  {/* Actions */}
                   <td className="p-3 text-right whitespace-nowrap">
                     <button
                       onClick={() => openEditModal(user)}
@@ -327,6 +347,7 @@ const ManageUsersView = () => {
                     >
                       <Edit size={18} />
                     </button>
+
                     <button
                       onClick={() => handleDelete(user._id)}
                       className="text-red-500 hover:text-red-700 p-2 ml-2"
@@ -339,6 +360,7 @@ const ManageUsersView = () => {
               ))}
             </tbody>
           </table>
+
           {users?.length === 0 && (
             <p className="p-4 text-center text-gray-500">No users found.</p>
           )}

@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import synconnectTypoGraphy from "../../assets/brand/typography/synconnect-text-logo.svg";
 import googleIcon from "../../assets/icons/google.svg";
 import useGoogleAuthApi from "./hooks/useGoogleAuthApi";
-import MovingDots from "../../components/common/MovingDots";
+import MovingDots from "../../components/ui/MovingDots";
 
 const LoginHeader = () => {
   const navigate = useNavigate();

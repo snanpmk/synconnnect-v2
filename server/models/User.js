@@ -7,15 +7,26 @@ const userSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    accountType: {
+      type: String,
+      enum: ["individual", "business"],
+      default: "individual",
+    },
     email: {
       type: String,
       required: true,
       unique: true,
       lowercase: true,
     },
-    phoneNumber: {
-      type: String,
-      required: false,
+    phone: {
+      dialCode: String,
+      countryCode: String,
+      phoneNumber: String,
+    },
+    whatsapp: {
+      dialCode: String,
+      countryCode: String,
+      phoneNumber: String,
     },
     profilePicUrl: {
       type: String,
@@ -29,7 +40,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
-    about: {
+    tagline: {
+      type: String,
+      default: null,
+    },
+    detailedAbout: {
       type: String,
       default: null,
     },
@@ -44,21 +59,12 @@ const userSchema = new mongoose.Schema(
     },
     setupStatus: {
       type: Number, // Using Number is more efficient than String for enums
-      enum: [0, 1, 2, 3], // Numerical mapping for efficient storage
+      enum: [0, 1], // Numerical mapping for efficient storage
       default: 0,
     },
 
-    // 0	Not Started	"Not Started " (Note the extra space)
-    // 1	Started	"Started"
-    // 2	Ongoing	"Ongoing"
-    // 3	Completed
-
-    
-    accountType: {
-      type: String,
-      enum: ["individual", "business"],
-      default: "individual",
-    },
+    // 0	Not Started	"Not Started"
+    // 1	Completed
 
     // ✅ For business accounts only
     businessName: {

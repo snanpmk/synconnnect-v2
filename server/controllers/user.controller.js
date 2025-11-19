@@ -48,3 +48,45 @@ export const getUserById = async (req, res) => {
     });
   }
 };
+
+export const updateUserSetup = async (req, res) => {
+  try {
+    const userId = req.query.id; // <-- ID from query
+
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res
+        .status(400)
+        .json({ message: "Invalid or missing userId in query" });
+    }
+
+    const payload = req.body;
+
+    // Auto-copy phone → whatsapp if selected
+    if (payload.useSameNumberForWhatsapp && payload.phone) {
+      payload.whatsapp = {
+        dialCode: payload.phone.dialCode,
+        countryCode: payload.phone.countryCode,
+        phoneNumber: payload.phone.phoneNumber,
+      };
+    }
+
+    // Safe update (only updates provided fields)
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: { ...payload, setupStatus: 1 } },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({
+      message: "User updated successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    return res.status(500).json({ message: "Internal Server Error", error });
+  }
+};

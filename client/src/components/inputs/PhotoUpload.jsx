@@ -213,7 +213,9 @@ const PhotoUpload = ({
         tempFile?.name || "cropped-image.jpg",
         { type: "image/jpeg" }
       );
-      field.onChange(croppedFile); // Update react-hook-form value
+      field.onChange(croppedFile);
+      console.log("CROPPED FILE SAVED INTO RHF:", croppedFile);
+
       setCropImage(null); // Close modal
       setTempFile(null);
     };

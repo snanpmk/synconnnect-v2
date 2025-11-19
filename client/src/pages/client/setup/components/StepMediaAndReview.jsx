@@ -2,10 +2,11 @@ import { Star } from "lucide-react";
 import { FaYoutube } from "react-icons/fa";
 import Input from "../../../../components/inputs/Input";
 import PhotoUpload from "../../../../components/inputs/PhotoUpload";
+import { useWatch } from "react-hook-form";
 
 // --- Step 3: Media & Reviews ---
 const StepMediaAndReview = ({ control }) => {
-  // Removed unnecessary watch, setValue, trigger props since they weren't used outside of coverPhoto watch
+
   return (
     <>
       <PhotoUpload

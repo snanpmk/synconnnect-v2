@@ -1,11 +1,13 @@
-import { BookOpen, Tag, Type } from "lucide-react";
+import { BookOpen, Briefcase, Tag, Type } from "lucide-react";
 import Input from "../../../../components/inputs/Input";
+import { businessCategories } from "../../../../constants/businessCategories";
+import Select from "../../../../components/inputs/Select";
 
 export const StepCoreInfo = ({ control }) => {
   return (
     <>
       <Input
-        name="name"
+        name="businessName"
         label="Business Name"
         icon={Type}
         control={control}
@@ -20,6 +22,16 @@ export const StepCoreInfo = ({ control }) => {
         rules={{ required: "Tagline is required" }}
         placeholder="e.g., Growing your perfect space."
       />
+      <Select
+        name="businessCategory"
+        label="Business Category"
+        icon={Briefcase}
+        control={control}
+        rules={{ required: "Business category is required" }}
+        options={businessCategories}
+        placeholder="Select your business category"
+      />
+
       <Input
         name="detailedAbout"
         label="Detailed About (Brief)"

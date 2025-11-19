@@ -190,13 +190,11 @@ export default function SetupScreenBusiness({ onSetupComplete }) {
     }
   };
 
-  const uploadToCloudinary = async (file) => {};
-
   // --- 4. Submission Logic ---
 
   const { mutate: postData, isPending } = usePostData({
     onSuccess: (data) => {
-      setSetupSuccess(true);
+      // setSetupSuccess(true);
       if (onSetupComplete) {
         onSetupComplete(data);
       }
@@ -221,18 +219,21 @@ export default function SetupScreenBusiness({ onSetupComplete }) {
       return;
     }
 
-    if (data.coverPhoto instanceof File) {
-      data.coverPhoto = await uploadToCloudinary(data.coverPhoto);
-    }
+    // if (data.coverPhoto instanceof File) {
+    //   data.coverPhoto = await uploadToCloudinary(data.coverPhoto);
+    // }
+
+    console.log(data);
 
     const finalData = {
       ...data,
       userId: userId,
+      accountType: "business",
     };
 
     console.log(finalData, "fffffffffffffffiiiiiiiiiiiiiiinnnnnnnnnalll");
 
-    postData({ url: "/setup", data: finalData, method: "POST" });
+    postData({ url: `/setup/?id=${userId}`, data: finalData, method: "PUT" });
   };
 
   // --- 5. Rendering Setup ---

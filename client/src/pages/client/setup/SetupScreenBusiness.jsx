@@ -39,7 +39,7 @@ const INITIAL_FORM_STATE = {
   phone: { ...defaultPhoneState },
   whatsapp: { ...defaultPhoneState },
   email: "",
-  address: "",
+  location: "",
   useSameNumberForWhatsapp: true,
 
   // Step 3: Media & Reviews
@@ -103,7 +103,7 @@ const stepsConfig = [
 // Main Parent Component
 // ====================================================================
 
-export default function SetupScreenBusiness({ onSetupComplete, userData }) {
+export default function SetupScreenBusiness({ onSetupComplete }) {
   // --- 1. RHF Initialization (Centralized State) ---
   const {
     handleSubmit,
@@ -129,10 +129,9 @@ export default function SetupScreenBusiness({ onSetupComplete, userData }) {
   } = useProfileSetupStore();
 
   console.log(errors);
-  
 
   const [setupSuccess, setSetupSuccess] = useState(false);
-  const userId = userData?.id || "MOCK_USER_ID_123";
+  const userId = localStorage?.getItem("userId");
 
   const validateCurrentStep = async (stepId) => {
     const stepConfig = stepsConfig[stepId - 1];
@@ -166,7 +165,6 @@ export default function SetupScreenBusiness({ onSetupComplete, userData }) {
       const isValid = await trigger(fieldsToValidate);
 
       console.log(isValid);
-      
 
       if (!isValid) {
         // Find the first error message from RHF errors object

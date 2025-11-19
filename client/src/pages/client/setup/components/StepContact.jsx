@@ -74,7 +74,7 @@ const StepContact = ({ control, watch, setValue }) => {
         type="email"
       />
       <Input
-        name="address"
+        name="location"
         label="Location/Address"
         icon={MapPin}
         control={control}

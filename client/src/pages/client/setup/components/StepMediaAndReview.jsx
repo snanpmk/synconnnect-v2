@@ -6,14 +6,13 @@ import { useWatch } from "react-hook-form";
 
 // --- Step 3: Media & Reviews ---
 const StepMediaAndReview = ({ control }) => {
-
   return (
     <>
       <PhotoUpload
         name="coverPhoto" // This registers the field with RHF
         label="Cover Photo"
         control={control}
-        ratio="landscape"
+        aspectRatio={"banner"}
         maxFileSize={10 * 1024 * 1024}
         rules={{ required: "A cover photo is required for the listing." }}
       />

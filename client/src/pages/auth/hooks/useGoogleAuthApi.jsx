@@ -12,8 +12,6 @@ const useGoogleAuthApi = () => {
   const clearIntendedPath = () => {
     localStorage.removeItem("intendedPath");
   };
-  const intendedPath = localStorage.getItem("intendedPath");
-  console.log(intendedPath);
 
   const googleLoginMutation = usePostData({});
 
@@ -28,7 +26,7 @@ const useGoogleAuthApi = () => {
     if (isAdmin) {
       navigate("/admin/dashboard");
     } else {
-      navigate(intendedPath);
+      navigate("/dashboard");
     }
     clearIntendedPath();
   };

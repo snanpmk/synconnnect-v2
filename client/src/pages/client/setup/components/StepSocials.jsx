@@ -7,7 +7,7 @@ import { Check, Users } from "lucide-react";
 const StepSocials = ({ control, watch }) => {
   const { fields, append, remove } = useFieldArray({
     control,
-    name: "socials",
+    name: "socialLinks",
     rules: {
       validate: (value) =>
         value.some((s) => s.url && s.url.trim()) ||
@@ -94,7 +94,7 @@ const StepSocials = ({ control, watch }) => {
           return (
             <div key={field.id}>
               <Input
-                name={`socials.${index}.url`}
+                name={`socialLinks.${index}.url`}
                 label={`${field.platform} URL`}
                 icon={Icon}
                 control={control}

@@ -2,6 +2,7 @@
 
 import User from "../models/User.js";
 import mongoose from "mongoose";
+import logger from "../utils/logger.js";
 
 export const getUserById = async (req, res) => {
   try {
@@ -51,17 +52,19 @@ export const getUserById = async (req, res) => {
 
 export const updateUserSetup = async (req, res) => {
   try {
-    const userId = req.query.id; // <-- ID from query
+    const userId = req.query.id;
 
     if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
-      return res
-        .status(400)
-        .json({ message: "Invalid or missing userId in query" });
+      return res.status(400).json({
+        message: "Invalid or missing userId in query",
+      });
     }
 
     const payload = req.body;
 
-    // Auto-copy phone → whatsapp if selected
+    console.log("Payload:", payload?.socials);
+
+    // Auto-copy phone → whatsapp
     if (payload.useSameNumberForWhatsapp && payload.phone) {
       payload.whatsapp = {
         dialCode: payload.phone.dialCode,
@@ -70,10 +73,43 @@ export const updateUserSetup = async (req, res) => {
       };
     }
 
-    // Safe update (only updates provided fields)
+    // ❌ Prevent accidental email overwrite
+    if ("email" in payload) {
+      delete payload.email;
+    }
+
+    // ✔ Whitelist allowed fields to prevent unwanted updates
+    const allowedFields = [
+      "name",
+      "tagline",
+      "detailedAbout",
+      "phone",
+      "whatsapp",
+      "website",
+      "address",
+      "location",
+      "socialLinks",
+      "businessName",
+      "businessCategory",
+      "coverImage",
+      "servicesHeading",
+      "services",
+    ];
+
+    const safeUpdate = {};
+
+    for (const key of allowedFields) {
+      if (payload[key] !== undefined) {
+        safeUpdate[key] = payload[key];
+      }
+    }
+
+    // Always set setupStatus to 1
+    safeUpdate.setupStatus = 1;
+
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { $set: { ...payload, setupStatus: 1 } },
+      { $set: safeUpdate },
       { new: true, runValidators: true }
     );
 
@@ -87,6 +123,9 @@ export const updateUserSetup = async (req, res) => {
     });
   } catch (error) {
     console.error("Error updating user:", error);
-    return res.status(500).json({ message: "Internal Server Error", error });
+    return res.status(500).json({
+      message: "Internal Server Error",
+      error,
+    });
   }
 };

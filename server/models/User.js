@@ -18,103 +18,94 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
     },
+
     phone: {
       dialCode: String,
       countryCode: String,
       phoneNumber: String,
     },
+
     whatsapp: {
       dialCode: String,
       countryCode: String,
       phoneNumber: String,
     },
+
     profilePicUrl: {
       type: String,
       default: "",
     },
-    brandImageUrl: {
-      type: String,
-      default: null,
+
+    coverImage: {
+      fullPath: { type: String, default: "" },
+      url: { type: String, default: "" },
     },
-    jobTitle: {
-      type: String,
-      default: null,
-    },
-    tagline: {
-      type: String,
-      default: null,
-    },
-    detailedAbout: {
-      type: String,
-      default: null,
-    },
-    password: {
-      type: String,
-      select: false,
-    },
+
+    jobTitle: { type: String, default: null },
+    companyname: { type: String, default: null },
+    tagline: { type: String, default: null },
+    detailedAbout: { type: String, default: null },
+
     cardStatus: {
       type: String,
       enum: ["Draft", "Designed", "Delivered"],
       default: "Draft",
     },
+
     setupStatus: {
-      type: Number, // Using Number is more efficient than String for enums
-      enum: [0, 1], // Numerical mapping for efficient storage
+      type: Number,
+      enum: [0, 1],
       default: 0,
     },
 
-    // 0	Not Started	"Not Started"
-    // 1	Completed
+    // ----------------------------------------------------
+    // ⭐ Business details
+    businessName: { type: String, trim: true },
+    businessCategory: { type: String, trim: true },
+    businessWebsite: { type: String, trim: true },
+    googleReviewLink: { type: String, trim: true },
+    paymentQrCode: { type: String, trim: true },
 
-    // ✅ For business accounts only
-    businessName: {
+    // ⭐ New Fields: Services Section
+    servicesHeading: {
       type: String,
       trim: true,
-    },
-    businessCategory: {
-      type: String,
-      trim: true,
-    },
-    businessWebsite: {
-      type: String,
-      trim: true,
-    },
-    googleReviewLink: {
-      type: String,
-      trim: true,
-    },
-    paymentQrCode: {
-      type: String,
-      trim: true,
+      default: "",
     },
 
-    // ✅ Common fields
+    services: [
+      {
+        title: { type: String, trim: true, required: true },
+        description: { type: String, trim: true, default: "" },
+      },
+    ],
+
+    // ----------------------------------------------------
+    // Common
     paymentStatus: {
       type: String,
       enum: ["pending", "active", "expired"],
       default: "pending",
     },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
+
+    createdAt: { type: Date, default: Date.now },
+
     isSuperAdmin: {
+      type: Boolean,
       required: true,
       default: false,
-      type: Boolean,
     },
+
     socialLinks: {
-      // 📞 Direct Contact Methods
-      call: { type: String, trim: true }, // phone number or tel: link
+      call: { type: String, trim: true },
       email: { type: String, trim: true },
       whatsapp: { type: String, trim: true },
       telegram: { type: String, trim: true },
-      location: { type: String, trim: true }, // address or Google Maps link
+      location: { type: String, trim: true },
 
-      // 👤 Personal / Professional
       linkedin: { type: String, trim: true },
       instagram: { type: String, trim: true },
-      x: { type: String, trim: true }, // formerly Twitter
+      x: { type: String, trim: true },
       facebook: { type: String, trim: true },
       youtube: { type: String, trim: true },
       threads: { type: String, trim: true },
@@ -126,7 +117,6 @@ const userSchema = new mongoose.Schema(
       behance: { type: String, trim: true },
       dribbble: { type: String, trim: true },
 
-      // 🏢 Business-Specific
       googleMaps: { type: String, trim: true },
       googleReview: { type: String, trim: true },
       bookingLink: { type: String, trim: true },
@@ -136,9 +126,8 @@ const userSchema = new mongoose.Schema(
       swiggy: { type: String, trim: true },
       justDial: { type: String, trim: true },
 
-      // 🌐 General / Others
       website: { type: String, trim: true },
-      calendar: { type: String, trim: true }, // meeting scheduler (Calendly, etc.)
+      calendar: { type: String, trim: true },
     },
   },
   { timestamps: true }

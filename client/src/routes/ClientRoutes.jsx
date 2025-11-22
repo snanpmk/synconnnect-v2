@@ -15,35 +15,35 @@ export default function ClientRoutes() {
       <Route
         path="profile"
         element={
-          // <ProtectedRoute>
+          <ProtectedRoute>
             <Profile />
-          // </ProtectedRoute>
+          </ProtectedRoute>
         }
       />
       <Route
         path="business"
         element={
-          // <ProtectedRoute>
-          <BusinessProfile />
-          // </ProtectedRoute>
+          <ProtectedRoute>
+            <BusinessProfile />
+          </ProtectedRoute>
         }
       />
       <Route
         path="setup"
         element={
-          // <ProtectedRoute>
-          <SetupScreenBusiness />
-          // </ProtectedRoute>
+          <ProtectedRoute>
+            <SetupScreenBusiness />
+          </ProtectedRoute>
         }
       />
       <Route
         path="dashboard"
         element={
-          // <ProtectedRoute>
-          <HasProfileSetup>
-            <ClientDashboard />
-          </HasProfileSetup>
-          // </ProtectedRoute>
+          <ProtectedRoute>
+            <HasProfileSetup>
+              <ClientDashboard />
+            </HasProfileSetup>
+          </ProtectedRoute>
         }
       />
     </Routes>

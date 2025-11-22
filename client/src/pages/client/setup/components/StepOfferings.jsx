@@ -5,15 +5,15 @@ import Input from "../../../../components/inputs/Input";
 const StepOfferings = ({ control, watch }) => {
   const { fields, append, remove } = useFieldArray({
     control,
-    name: "offerings",
+    name: "services",
   });
 
-  const currentOfferings = watch("offerings");
+  const currentOfferings = watch("services");
 
   return (
     <>
       <Input
-        name="offeringsHeading"
+        name="servicesHeading"
         label="Services Section Heading (Custom)"
         icon={Briefcase}
         control={control}
@@ -44,7 +44,7 @@ const StepOfferings = ({ control, watch }) => {
             </span>
 
             <Input
-              name={`offerings.${index}.title`}
+              name={`services.${index}.title`}
               label="Title"
               icon={Type}
               control={control}
@@ -52,7 +52,7 @@ const StepOfferings = ({ control, watch }) => {
               placeholder="e.g., Custom SaaS Dev"
             />
             <Input
-              name={`offerings.${index}.description`}
+              name={`services.${index}.description`}
               label="Description"
               icon={BookOpen}
               control={control}

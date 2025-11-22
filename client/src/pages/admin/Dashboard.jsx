@@ -314,6 +314,7 @@ const ManageUsersView = () => {
                 >
                   {/* Full Name + Avatar */}
                   <td className="p-3 flex items-center gap-3">
+                    {console.log(user.profilePicUrl)}
                     {user.profilePicUrl ? (
                       <img
                         src={user.profilePicUrl}

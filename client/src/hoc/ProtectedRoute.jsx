@@ -1,20 +1,17 @@
-import React, { useEffect, useState } from "react";
-import { Navigate, useLocation } from "react-router-dom";
-import useAuthStore from "../store/useAuthStore";
+import { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
 import { getAccessTokenFromRefresh } from "../pages/auth/utils/getAccessTokenFromRefresh";
+import useAuthStore from "../store/useAuthStore";
 
 const ProtectedRoute = ({ children }) => {
   const accessToken = useAuthStore((state) => state.accessToken);
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
-  const location = useLocation();
 
   const [isLoading, setIsLoading] = useState(true);
   const isLoggedIn = !!accessToken;
 
   useEffect(() => {
     if (!isLoggedIn) {
-      localStorage.setItem("intendedPath", location.pathname);
-
       const attemptTokenRefresh = async () => {
         try {
           const newToken = await getAccessTokenFromRefresh();
@@ -32,7 +29,7 @@ const ProtectedRoute = ({ children }) => {
     } else {
       setIsLoading(false);
     }
-  }, [isLoggedIn, location.pathname, setAccessToken]);
+  }, [isLoggedIn, setAccessToken]);
 
   if (isLoading) {
     return (

@@ -12,16 +12,19 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 
 import usePostData from "../../../api/usePostData";
 
+import toast from "react-hot-toast";
+import { useFirebaseImageUpload } from "../../../hooks/useFirebaseImageUpload";
+import { processImage } from "../../../utils/ImageCompress&resize";
 import StepContact from "./components/StepContact";
 import { StepCoreInfo } from "./components/StepCoreInfo";
 import StepMediaAndReview from "./components/StepMediaAndReview";
 import StepOfferings from "./components/StepOfferings";
 import StepSocials from "./components/StepSocials";
 import useProfileSetupStore from "./store/useProfileSetupStore";
-import toast from "react-hot-toast";
 
 const defaultPhoneState = {
   dialCode: "+91",
@@ -105,6 +108,8 @@ const stepsConfig = [
 
 export default function SetupScreenBusiness({ onSetupComplete }) {
   // --- 1. RHF Initialization (Centralized State) ---
+
+  const navigate = useNavigate();
   const {
     handleSubmit,
     control,
@@ -128,7 +133,7 @@ export default function SetupScreenBusiness({ onSetupComplete }) {
     setValidationError,
   } = useProfileSetupStore();
 
-  console.log(errors);
+  const { upload, update } = useFirebaseImageUpload();
 
   const [setupSuccess, setSetupSuccess] = useState(false);
   const userId = localStorage?.getItem("userId");
@@ -164,8 +169,6 @@ export default function SetupScreenBusiness({ onSetupComplete }) {
     if (fieldsToValidate.length > 0) {
       const isValid = await trigger(fieldsToValidate);
 
-      console.log(isValid);
-
       if (!isValid) {
         // Find the first error message from RHF errors object
         const firstErrorKey = fieldsToValidate.find((key) => errors[key]);
@@ -183,7 +186,6 @@ export default function SetupScreenBusiness({ onSetupComplete }) {
 
   const handleNextStep = async () => {
     const isValid = await validateCurrentStep(currentStep);
-    console.log(isValid);
 
     if (isValid) {
       goToNextStep();
@@ -195,6 +197,8 @@ export default function SetupScreenBusiness({ onSetupComplete }) {
   const { mutate: postData, isPending } = usePostData({
     onSuccess: (data) => {
       // setSetupSuccess(true);
+      console.log(data);
+
       if (onSetupComplete) {
         onSetupComplete(data);
       }
@@ -206,9 +210,6 @@ export default function SetupScreenBusiness({ onSetupComplete }) {
 
   const onSubmit = async (data) => {
     const isValid = await validateCurrentStep(totalSteps);
-    console.log(isValid, "isValid");
-
-    console.log(data);
 
     if (!isValid) {
       return;
@@ -223,7 +224,22 @@ export default function SetupScreenBusiness({ onSetupComplete }) {
     //   data.coverPhoto = await uploadToCloudinary(data.coverPhoto);
     // }
 
-    console.log(data);
+    let coverImage = "";
+    if (data.coverPhoto) {
+      const processed = await processImage(data.coverPhoto, "banner", {
+        maxKB: 400,
+        outputType: "image/jpeg",
+      });
+
+      if (!processed) {
+        alert("Image processing failed.");
+        return;
+      }
+
+      console.log("2️⃣ Uploading image...");
+      coverImage = await upload(processed, `users/${data.email}/cover-image`);
+      data.coverImage = coverImage;
+    }
 
     const finalData = {
       ...data,
@@ -231,13 +247,16 @@ export default function SetupScreenBusiness({ onSetupComplete }) {
       accountType: "business",
     };
 
-    console.log(finalData, "fffffffffffffffiiiiiiiiiiiiiiinnnnnnnnnalll");
+    const res = postData({
+      url: `/setup/?id=${userId}`,
+      data: finalData,
+      method: "PUT",
+    });
 
-    postData({ url: `/setup/?id=${userId}`, data: finalData, method: "PUT" });
+    console.log(res);
   };
 
   // --- 5. Rendering Setup ---
-  console.log(currentStep);
 
   const currentStepData = stepsConfig[currentStep - 1];
   const CurrentStepComponent = currentStepData.component;

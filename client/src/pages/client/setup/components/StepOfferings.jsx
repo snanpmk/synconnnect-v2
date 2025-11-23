@@ -39,7 +39,7 @@ const StepOfferings = ({ control, watch }) => {
             >
               <X className="w-4 h-4" />
             </button>
-            <span className={`block mb-2 font-semibold text-lime-500`}>
+            <span className={`block mb-2 font-semibold text-primary`}>
               Offering #{index + 1}
             </span>
 
@@ -71,7 +71,7 @@ const StepOfferings = ({ control, watch }) => {
         className={`mt-4 w-full p-3 text-sm font-semibold rounded-lg text-white transition-colors shadow-md ${
           currentOfferings?.length >= 4
             ? "bg-gray-400 cursor-not-allowed"
-            : `bg-lime-500 hover:bg-lime-700`
+            : `bg-primary hover:bg-primary-hover`
         }`}
         disabled={currentOfferings?.length >= 4}
       >

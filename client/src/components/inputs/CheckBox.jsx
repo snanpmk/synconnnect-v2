@@ -14,7 +14,7 @@ const Checkbox = ({ name, control, label, id, className = "" }) => {
             id={id || name}
             checked={field.value}
             onChange={field.onChange}
-            className="h-4 w-4 rounded border-gray-300 text-lime-600 focus:ring-lime-500"
+            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary-hover"
           />
 
           <label

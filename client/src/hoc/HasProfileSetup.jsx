@@ -6,7 +6,7 @@ const HasProfileSetup = ({ children }) => {
   console.log(localStorage.getItem("userId"));
   const navigate = useNavigate();
   const { data, isLoading, isError, error } = useGetData({
-    url: `/user/?id=${localStorage.getItem("userId")}`,
+    url: `/user/public?id=${localStorage.getItem("userId")}`,
     queryKey: ["user"],
   });
 

@@ -138,7 +138,7 @@ export const themeConfigs = {
     textSecondary: "text-gray-600",
     border: "border-lime-200",
     accent: "text-lime-700",
-    accentBg: "bg-gradient-to-r from-lime-500 to-green-600",
+    accentBg: "bg-gradient-to-r from-primary to-green-600",
     accentLightBg: "bg-gradient-to-r from-lime-100 to-lime-50",
     accentHover: "hover:from-lime-600 hover:to-green-700",
   },

@@ -36,7 +36,7 @@ const userSchema = new mongoose.Schema(
       default: "",
     },
 
-    coverImage: {
+    coverPhoto: {
       fullPath: { type: String, default: "" },
       url: { type: String, default: "" },
     },
@@ -65,6 +65,10 @@ const userSchema = new mongoose.Schema(
     businessWebsite: { type: String, trim: true },
     googleReviewLink: { type: String, trim: true },
     paymentQrCode: { type: String, trim: true },
+    location: { type: String, trim: true },
+    youtubeVideoUrl: { type: String, trim: true },
+
+    // ----------------------------------------------------
 
     // ⭐ New Fields: Services Section
     servicesHeading: {

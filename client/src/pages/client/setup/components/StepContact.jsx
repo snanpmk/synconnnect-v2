@@ -78,8 +78,15 @@ const StepContact = ({ control, watch, setValue }) => {
         label="Location/Address"
         icon={MapPin}
         control={control}
-        rules={{ required: "Address is required" }}
         type="text"
+        rules={{
+          required: "Location is required",
+          pattern: {
+            value:
+              /^(https?:\/\/)?(www\.)?(google\.com\/maps\/.+|goo\.gl\/maps\/.+|maps\.app\.goo\.gl\/.+)$/i,
+            message: "Please enter a valid Google Maps URL",
+          },
+        }}
       />
     </>
   );

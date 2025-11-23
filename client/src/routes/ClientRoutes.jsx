@@ -21,11 +21,11 @@ export default function ClientRoutes() {
         }
       />
       <Route
-        path="business"
+        path="business/:id"
         element={
-          <ProtectedRoute>
-            <BusinessProfile />
-          </ProtectedRoute>
+          // <ProtectedRoute>
+          <BusinessProfile />
+          // </ProtectedRoute>
         }
       />
       <Route

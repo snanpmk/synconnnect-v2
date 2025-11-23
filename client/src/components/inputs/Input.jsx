@@ -22,7 +22,7 @@ const Input = ({
       control={control}
       rules={rules}
       render={({ field, fieldState: { error } }) => {
-        const baseClasses = `w-full p-3 border-gray-200 border rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-lime-500 focus:border-lime-500 transition-all text-sm shadow-sm`;
+        const baseClasses = `w-full p-3 border-gray-200 border rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-primary focus:border-primary transition-all text-sm shadow-sm`;
         const errorClasses = error ? "border-red-500" : "";
         const finalInputClasses = `${baseClasses} ${errorClasses} ${inputClassName}`;
 
@@ -32,7 +32,7 @@ const Input = ({
               htmlFor={name}
               className={`text-sm font-medium text-gray-600 mb-1 flex items-center`}
             >
-              {Icon && <Icon className="w-4 h-4 mr-2 text-lime-500" />}
+              {Icon && <Icon className="w-4 h-4 mr-2 text-primary" />}
               {label}
               {rules?.required && <span className="text-red-500">*</span>}
             </label>

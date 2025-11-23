@@ -41,7 +41,7 @@ const CountryDropdownMenu = React.memo(
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             autoFocus
-            className={`w-full p-2 pl-10 text-sm border border-gray-200 rounded-lg focus:ring-lime-500 focus:border-lime-500`}
+            className={`w-full p-2 pl-10 text-sm border border-gray-200 rounded-lg focus:ring-primary focus:border-primary`}
           />
         </div>
       </div>
@@ -137,7 +137,7 @@ const PhoneInputField = ({
           [disabled, onChange, value]
         );
 
-        const inputBaseClasses = `flex-1 w-full p-3 border border-gray-200 bg-white text-gray-900 focus:ring-2 focus:ring-lime-500 focus:border-lime-500 transition-all text-sm shadow-sm`;
+        const inputBaseClasses = `flex-1 w-full p-3 border border-gray-200 bg-white text-gray-900 focus:ring-2 focus:ring-primary focus:border-primary transition-all text-sm shadow-sm`;
         const inputErrorClasses = error
           ? "border-red-500 ring-red-500/50"
           : "border-l-0";
@@ -156,7 +156,7 @@ const PhoneInputField = ({
               className={`block text-sm font-medium text-gray-600 mb-1 flex items-center`}
             >
               {/* React Icon used here */}
-              <Phone className="w-4 h-4 mr-2 text-lime-500" />
+              <Phone className="w-4 h-4 mr-2 text-primary" />
               {label}
               {rules?.required && <span className="text-red-500">*</span>}
             </label>
@@ -172,7 +172,7 @@ const PhoneInputField = ({
                 type="button"
                 onClick={() => setIsDropdownOpen((p) => !p)}
                 disabled={disabled}
-                className={`flex-shrink-0 flex items-center justify-center p-3 h-full rounded-l-lg border-r border-gray-200 ${buttonDisabledClasses} transition-all text-sm relative z-10 focus:outline-none focus:ring-2 focus:ring-lime-500/50`}
+                className={`flex-shrink-0 flex items-center justify-center p-3 h-full rounded-l-lg border-r border-gray-200 ${buttonDisabledClasses} transition-all text-sm relative z-10 focus:outline-none focus:ring-2 focus:ring-primary/50`}
                 style={{ width: "120px" }}
               >
                 <span className="mr-2 text-lg">{selectedCountry.flag}</span>

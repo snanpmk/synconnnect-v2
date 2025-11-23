@@ -1,651 +1,736 @@
-import React, { useState, useEffect } from "react";
+// src/pages/BusinessProfile.jsx
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Phone,
+  Briefcase,
+  Building2,
+  ChevronRight,
   Mail,
   MapPin,
   MessageCircle,
-  Globe,
-  Clock,
+  Phone,
   Share2,
-  Image,
-  ChevronRight,
   Star,
-  Briefcase,
   Users,
-  Building2,
-  Store,
-  Lightbulb,
   X,
-  Facebook,
-  Instagram,
-  Linkedin,
+  Sparkles,
 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
 
-// --- DUMMY DATA ---
-const DUMMY_GALLERY_IMAGES = [
-  "https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=600&q=80",
-  "https://images.unsplash.com/photo-1522204523234-8729aa6e993f?w=600&q=80",
-  "https://images.unsplash.com/photo-1547484132-ff45b3765e90?w=600&q=80",
-  "https://images.unsplash.com/photo-1507680434567-5738876a3e59?w=600&q=80",
-];
+import useGetData from "../../api/useGetData";
+import usePostData from "../../api/usePostData";
+import Input from "../../components/inputs/Input";
+import { PLATFORM_ICONS } from "../../constants/socialIcons";
 
-const DUMMY_YOUTUBE_ID = "jndWxpCzO5g";
-const MOCK_REVIEW_PAGE = "https://example.com/mock-review-page";
-
-const themes = {
-  light: {
-    bg: "bg-white",
-    text: "text-gray-900",
-    textSecondary: "text-gray-600",
-    border: "border-gray-200",
-    accent: "text-blue-600",
-    accentBg: "bg-blue-600",
-    accentHover: "hover:bg-blue-700",
-    accentLightBg: "bg-blue-50",
-    // Color fix for dark theme contrast
-    starEmpty: "text-gray-300 fill-gray-300/20",
-  },
-  dark: {
-    bg: "bg-gray-900",
-    text: "text-white",
-    textSecondary: "text-gray-400",
-    border: "border-gray-800",
-    accent: "text-blue-400",
-    accentBg: "bg-blue-600",
-    accentHover: "hover:bg-blue-700",
-    accentLightBg: "bg-gray-800",
-    // Color fix for dark theme contrast
-    starEmpty: "text-gray-600 fill-gray-600/30",
-  },
-  ocean: {
-    bg: "bg-cyan-50",
-    text: "text-cyan-900",
-    textSecondary: "text-cyan-700",
-    border: "border-cyan-200",
-    accent: "text-cyan-600",
-    accentBg: "bg-cyan-600",
-    accentHover: "hover:bg-cyan-700",
-    accentLightBg: "bg-cyan-100",
-    starEmpty: "text-gray-300 fill-gray-300/20",
-  },
-  sunset: {
-    bg: "bg-orange-50",
-    text: "text-orange-900",
-    textSecondary: "text-orange-700",
-    border: "border-orange-200",
-    accent: "text-orange-600",
-    accentBg: "bg-orange-600",
-    accentHover: "hover:bg-orange-700",
-    accentLightBg: "bg-orange-100",
-    starEmpty: "text-gray-300 fill-gray-300/20",
-  },
-  forest: {
-    bg: "bg-green-50",
-    text: "text-green-900",
-    textSecondary: "text-green-700",
-    border: "border-green-200",
-    accent: "text-green-600",
-    accentBg: "bg-green-600",
-    accentHover: "hover:bg-green-700",
-    accentLightBg: "bg-green-100",
-    starEmpty: "text-gray-300 fill-gray-300/20",
-  },
-  lavender: {
-    bg: "bg-purple-50",
-    text: "text-purple-900",
-    textSecondary: "text-purple-700",
-    border: "border-purple-200",
-    accent: "text-purple-600",
-    accentBg: "bg-purple-600",
-    accentHover: "hover:bg-purple-700",
-    accentLightBg: "bg-purple-100",
-    starEmpty: "text-gray-300 fill-gray-300/20",
-  },
+/* ------------------------
+   Helpers (unchanged logic)
+   ------------------------*/
+const formatPhoneForWhatsApp = (raw) => {
+  if (!raw) return "";
+  if (typeof raw === "object") {
+    const dial = raw?.dialCode ?? "";
+    const num = raw?.phoneNumber ?? "";
+    return `${dial}${num}`.replace(/\D/g, "");
+  }
+  return String(raw).replace(/\D/g, "").replace(/^0+/, "");
 };
 
-export default function BusinessProfile() {
-  const [currentTheme, setCurrentTheme] = useState("light");
-  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
-  const [userRating, setUserRating] = useState(0);
-  const [hoverRating, setHoverRating] = useState(0);
-  const [feedbackText, setFeedbackText] = useState("");
+const buildWhatsAppLink = (number, msg = "") => {
+  const n = formatPhoneForWhatsApp(number);
+  const encoded = encodeURIComponent(msg);
+  return n
+    ? `https://wa.me/${n}?text=${encoded}`
+    : `https://wa.me/?text=${encoded}`;
+};
 
-  const theme = themes[currentTheme];
+const normalizePlatformKey = (label) => {
+  console.log(label);
 
-  const businessProfile = {
-    name: "Synconnect Digital",
-    tagline: "Your Partner in Digital Transformation",
-    industry: "SaaS & Custom Software Development",
-    detailedAbout: `Synconnect Digital is a leading technology consultancy specializing in full-cycle SaaS product development and custom enterprise solutions.\n\nOur mission is to empower businesses, from ambitious startups to established enterprises, with the technology they need to lead their markets.`,
-    coverPhoto:
-      "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&q=80",
-    googleReviewLink: MOCK_REVIEW_PAGE,
-    averageRating: 4.8,
-    totalReviews: 145,
-    website: "https://www.synconnect.com",
-    workingHours: "Mon - Fri: 9:00 AM - 5:00 PM (IST)",
-    contact: {
-      phone: "+91 8089555000",
-      email: "support@synconnect.com",
-      address: "Bangalore, India",
-    },
-    socials: [
-      { icon: Globe, link: "https://www.synconnect.com", label: "Website" },
-      {
-        icon: Linkedin,
-        link: "https://linkedin.com/synconnect",
-        label: "LinkedIn",
-      },
-      { icon: X, link: "https://x.com/synconnect", label: "X (Twitter)" },
-      {
-        icon: Facebook,
-        link: "https://facebook.com/synconnect",
-        label: "Facebook",
-      },
-      {
-        icon: Instagram,
-        link: "https://instagram.com/synconnect",
-        label: "Instagram",
-      },
-    ],
-  };
+  if (!label) return "other";
+  const l = label.toLowerCase();
+  if (l.includes("facebook")) return "facebook";
+  if (l.includes("instagram")) return "instagram";
+  if (l === "x" || l.includes("twitter")) return "twitter";
+  if (l.includes("linkedin")) return "linkedin";
+  if (l.includes("youtube")) return "youtube";
+  if (l.includes("tiktok")) return "tiktok";
+  if (l.includes("whatsapp")) return "whatsapp";
+  return "other";
+};
 
-  const quickActions = [
-    {
-      icon: Phone,
-      label: "Call Us",
-      subtitle: businessProfile.contact.phone,
-      link: `tel:${businessProfile.contact.phone}`,
-    },
-    {
-      icon: MessageCircle,
-      label: "Message Us",
-      subtitle: "24/7 Live Support",
-      link: "#",
-    },
-    {
-      icon: Mail,
-      label: "Email",
-      subtitle: businessProfile.contact.email,
-      link: `mailto:${businessProfile.contact.email}`,
-    },
-    {
-      icon: MapPin,
-      label: "Location",
-      subtitle: businessProfile.contact.address,
-      link: "#",
-    },
-  ];
+/* ------------------------
+   Presentational (themed)
+   ------------------------*/
 
-  const offerings = [
-    {
-      title: "Custom SaaS Development",
-      description:
-        "End-to-end development of cloud-native, scalable software products.",
-    },
-    {
-      title: "Digital Strategy",
-      description:
-        "Data-driven roadmaps to optimize operations and accelerate growth.",
-    },
-    {
-      title: "UI/UX & Branding",
-      description:
-        "Designing intuitive interfaces that captivate users and convert.",
-    },
-    {
-      title: "Dedicated Team",
-      description: "Augment your team with our expert MERN/Cloud developers.",
-    },
-  ];
-
-  const handleRatingClick = (rating) => {
-    setUserRating(rating);
-    setHoverRating(0);
-
-    if (rating >= 3) {
-      // High Rating: Direct to Public Review
-      window.open(businessProfile.googleReviewLink, "_blank");
-    } else if (rating > 0 && rating < 3) {
-      // Low Rating: Open Private Feedback Modal
-      setFeedbackText("");
-      setShowFeedbackModal(true);
-    }
-  };
-
-  const handleModalAction = () => {
-    if (userRating > 0 && userRating < 3) {
-      if (!feedbackText.trim()) {
-        alert("Please provide feedback so we can improve.");
-        return;
-      }
-      alert(`Private Feedback sent! Thank you for your input.`);
-      setShowFeedbackModal(false);
-      setUserRating(0);
-      setFeedbackText("");
-    } else {
-      setShowFeedbackModal(false);
-    }
-  };
-
-  // --- Components ---
-
-  const ProfileHeader = () => (
-    <div className="relative w-full">
-      <div className="relative w-full h-[40vh] sm:h-[50vh] lg:h-[60vh] overflow-hidden">
+const ProfileHeader = React.memo(function ProfileHeader({
+  coverPhoto,
+  name,
+  tagline,
+  onShare,
+}) {
+  return (
+    <header className="relative w-full">
+      {/* Ambient background blobs */}
+      <div className="fixed inset-0 -z-10 pointer-events-none">
+        <div className="absolute top-24 right-16 w-96 h-96 bg-slate-200/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-36 left-12 w-80 h-80 bg-slate-200/18 rounded-full blur-3xl" />
+      </div>
+      <div className="relative w-full h-[34vh] sm:h-[48vh] lg:h-[56vh] overflow-hidden">
         <img
-          src={businessProfile.coverPhoto}
+          src={coverPhoto}
           alt="Business Cover"
-          className="absolute inset-0 w-full h-full object-cover object-center"
+          className="absolute inset-0 w-full h-full object-cover object-center filter brightness-75"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.22)_0%,transparent_55%)]" />
 
         <div className="absolute inset-0 flex flex-col justify-end">
-          <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pb-6 sm:pb-10 lg:pb-14">
-            <div className="animate-fadeIn">
-              <h1 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-2 sm:mb-3 leading-tight">
-                {businessProfile.name}
-              </h1>
-              <p className="text-base sm:text-lg md:text-xl text-gray-200 font-light max-w-2xl mb-6 sm:mb-8">
-                {businessProfile.tagline}
-              </p>
+          <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 pb-8 sm:pb-12">
+            <div className="bg-white/10 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-white/10 shadow-lg inline-block animate-fadeIn">
+              <div className="flex items-center gap-4">
+                <div>
+                  <h1 className="text-xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight">
+                    {name}
+                  </h1>
+                  <p className="text-sm sm:text-base text-white/80 mt-1 max-w-2xl">
+                    {tagline}
+                  </p>
+                </div>
+                <div className="ml-auto flex gap-2 items-center">
+                  <button
+                    onClick={onShare}
+                    title="Share profile"
+                    className="p-2.5 rounded-full bg-white/90 backdrop-blur shadow-md border border-gray-200 hover:bg-white transition-all"
+                  >
+                    <Share2 className="w-5 h-5 text-gray-700" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </div>{" "}
+      {/* end hero */}
+    </header>
   );
+});
 
-  const StarRating = () => (
-    <div className="flex flex-col items-start gap-1">
-      <p className={`text-xs sm:text-sm font-medium ${theme.text} opacity-80`}>
-        Rate Your Experience:
+const StarRating = React.memo(function StarRating({
+  userRating,
+  hoverRating,
+  setHoverRating,
+  onRate,
+}) {
+  return (
+    <div className="w-full flex flex-col items-center gap-3 py-4">
+      <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/80 border border-gray-100 shadow-sm">
+        {[1, 2, 3, 4, 5].map((n) => {
+          const filled = hoverRating >= n || (!hoverRating && userRating >= n);
+          return (
+            <Star
+              key={n}
+              onMouseEnter={() => setHoverRating(n)}
+              onClick={() => onRate(n)}
+              className={`w-10 h-10 cursor-pointer transition-all duration-200 ${
+                filled
+                  ? "text-amber-400 fill-amber-400 scale-110 drop-shadow"
+                  : "text-gray-300"
+              } hover:scale-125`}
+              title={`${n} star${n > 1 ? "s" : ""}`}
+            />
+          );
+        })}
+      </div>
+      <p className="text-xs text-gray-600">
+        Tap a star to rate — low ratings will open a private feedback modal.
       </p>
-      <div
-        className="flex items-center gap-1 sm:gap-2"
-        onMouseLeave={() => setHoverRating(0)}
-      >
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Star
-            key={star}
-            onMouseEnter={() => setHoverRating(star)}
-            onClick={() => handleRatingClick(star)}
-            // Stars are now significantly larger
-            className={`w-10 h-10 sm:w-8 sm:h-8 transition-all duration-150 cursor-pointer 
-              ${
-                hoverRating >= star || (!hoverRating && userRating >= star)
-                  ? "text-yellow-500 fill-yellow-500" // Filled star color
-                  : theme.starEmpty // Empty star color (fixed for contrast)
-              } 
-              hover:scale-110 active:scale-90`}
-            title={`Rate ${star} star${star > 1 ? "s" : ""}`}
-          />
-        ))}
-      </div>
-      {userRating > 0 && (
-        <p className={`text-xs ${theme.textSecondary} mt-1 font-semibold`}>
-          {userRating >= 3
-            ? "Thank you! Please leave a public review."
-            : "Thanks! Please leave private feedback."}
-        </p>
-      )}
     </div>
   );
+});
 
-  const ActionButtons = () => (
-    <div
-      className={`sticky top-0 z-30 backdrop-blur-xl ${theme.bg}/90 border-b ${theme.border} transition-all duration-300 shadow-md`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
-        <div className="flex items-center justify-between gap-4 sm:gap-6">
-          {/* PRIORITY 1: Sticky Star Rating (Bigger stars) */}
-          <StarRating />
+/* ------------------------
+   Feedback Modal (themed)
+   ------------------------*/
+function FeedbackModalInner({
+  visible,
+  userRating,
+  onClose,
+  userId,
+  trackEvent,
+}) {
+  const { control, handleSubmit, reset } = useForm({
+    defaultValues: { feedback: "" },
+  });
 
-          <div className="flex items-center gap-2 sm:gap-3">
-            {/* Website button is removed */}
+  const feedbackMutation = usePostData({
+    onSuccess: () => {
+      reset();
+      onClose();
+      toast.success("Thank you for your feedback!");
+      try {
+        trackEvent("feedback_private_submitted", { rating: userRating });
+      } catch (e) {
+        console.log(e);
+      }
+    },
+  });
 
-            {/* Share Button (moved slightly) */}
-            <button
-              onClick={() => console.log("Share")}
-              className={`p-2 sm:p-2.5 rounded-xl border ${theme.border} ${theme.textSecondary} transition-all duration-300 hover:scale-110 active:scale-90 ${theme.bg}`}
-              title="Share Profile"
-            >
-              <Share2 className="w-6 h-6 sm:w-5 sm:h-5" />
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  const onSubmit = (values) => {
+    feedbackMutation.mutate({
+      url: "/feedback",
+      method: "POST",
+      data: { userId, rating: userRating, feedback: values.feedback },
+    });
+  };
 
-  const QuickActionsSection = () => (
-    <div className="animate-slideUp">
-      <h2
-        className={`text-xl sm:text-2xl font-bold ${theme.text} mb-4 sm:mb-6`}
-      >
-        Quick Contact
-      </h2>
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {quickActions.map((action, i) => (
-          <a
-            key={i}
-            href={action.link}
-            target={
-              action.link.startsWith("http") || action.link.startsWith("mailto")
-                ? "_blank"
-                : "_self"
-            }
-            className={`group p-4 sm:p-5 rounded-2xl border ${theme.border} ${theme.bg} hover:${theme.accentLightBg} cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 active:scale-95`}
-          >
-            <action.icon
-              className={`w-6 h-6 sm:w-7 sm:h-7 ${theme.accent} mb-3 group-hover:scale-110 transition-transform duration-300`}
-            />
-            <p
-              className={`text-sm sm:text-base font-semibold ${theme.text} mb-1`}
-            >
-              {action.label}
-            </p>
-            <p
-              className={`text-xs sm:text-sm ${theme.textSecondary} leading-snug`}
-            >
-              {action.subtitle}
-            </p>
-          </a>
-        ))}
-      </div>
-    </div>
-  );
+  if (!visible) return null;
+  if (userRating >= 3 || userRating < 1) return null;
 
-  const SocialLinksSection = () => (
-    <div className="animate-slideUp">
-      <h3
-        className={`text-lg sm:text-xl font-bold ${theme.text} mb-3 sm:mb-4 flex items-center gap-2`}
-      >
-        <Users className={`w-5 h-5 ${theme.accent}`} />
-        Connect with Us
-      </h3>
-      <div className="flex flex-wrap gap-3 sm:gap-4">
-        {businessProfile.socials.map((social, i) => (
-          <a
-            key={i}
-            href={social.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            title={`Go to our ${social.label}`}
-            className={`p-3 rounded-full border ${theme.border} ${theme.text} ${theme.accentLightBg} hover:${theme.accentBg} hover:text-white transition-all duration-300 transform hover:scale-110 active:scale-95`}
-          >
-            <social.icon className="w-5 h-5 sm:w-6 sm:h-6" />
-          </a>
-        ))}
-      </div>
-    </div>
-  );
-
-  const DetailedAboutSection = () => (
-    <div className="animate-slideUp">
-      <h2
-        className={`text-xl sm:text-2xl font-bold ${theme.text} mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3`}
-      >
-        <Building2 className={`w-5 h-5 sm:w-6 sm:h-6 ${theme.accent}`} />
-        About {businessProfile.name}
-      </h2>
-      <div
-        className={`p-5 sm:p-6 rounded-2xl border ${theme.border} ${theme.accentLightBg}`}
-      >
-        <div className="prose dark:prose-invert max-w-none">
-          {businessProfile.detailedAbout
-            .split("\n\n")
-            .map((paragraph, index) => (
-              <p
-                key={index}
-                className={`text-sm sm:text-base ${theme.textSecondary} leading-relaxed mb-4`}
-              >
-                {paragraph}
-              </p>
-            ))}
-        </div>
-      </div>
-    </div>
-  );
-
-  const OfferingsSection = () => (
-    <div className="animate-slideUp">
-      <h2
-        className={`text-xl sm:text-2xl font-bold ${theme.text} mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3`}
-      >
-        <Briefcase className={`w-5 h-5 sm:w-6 sm:h-6 ${theme.accent}`} />
-        Our Core Features & Services
-      </h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-        {offerings.map((service, i) => (
-          <div
-            key={i}
-            className={`group p-5 sm:p-6 rounded-2xl border ${theme.border} ${theme.bg} hover:${theme.accentLightBg} transition-all duration-300 hover:shadow-xl hover:-translate-y-1`}
-          >
-            {/* Removed icon for dynamic business use */}
-            <h3 className={`text-base sm:text-lg font-bold ${theme.text} mb-2`}>
-              {service.title}
-            </h3>
-            <p
-              className={`text-sm sm:text-base ${theme.textSecondary} mb-4 leading-relaxed`}
-            >
-              {service.description}
-            </p>
-            <a
-              href="#"
-              className={`inline-flex items-center text-sm font-semibold ${theme.accent} hover:gap-2 transition-all duration-300 group`}
-            >
-              Details
-              <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" />
-            </a>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const VideoSection = () => (
-    <div className="animate-slideUp">
-      <h2
-        className={`text-xl sm:text-2xl font-bold ${theme.text} mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3`}
-      >
-        <Store className={`w-5 h-5 sm:w-6 sm:h-6 ${theme.accent}`} />
-        Company Showcase Video
-      </h2>
-      <div className="aspect-video w-full overflow-hidden rounded-2xl shadow-xl">
-        <iframe
-          width="100%"
-          height="100%"
-          src={`https://www.youtube.com/embed/${DUMMY_YOUTUBE_ID}`}
-          title="Company Video"
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          className="w-full h-full"
-        ></iframe>
-      </div>
-    </div>
-  );
-
-  const GallerySection = () => (
-    <div className="animate-slideUp">
-      <h3
-        className={`text-lg sm:text-xl font-bold ${theme.text} mb-3 sm:mb-4 flex items-center gap-2`}
-      >
-        <Image className={`w-5 h-5 ${theme.accent}`} />
-        Visual Gallery
-      </h3>
-      <div className="grid grid-cols-2 gap-2 sm:gap-3">
-        {DUMMY_GALLERY_IMAGES.map((src, i) => (
-          <div
-            key={i}
-            className="relative aspect-square overflow-hidden rounded-xl cursor-pointer group"
-          >
-            <img
-              src={src}
-              alt={`Gallery ${i + 1}`}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-            />
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300"></div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const WorkingHoursSection = () => (
-    <div className="animate-slideUp">
-      <h3
-        className={`text-lg sm:text-xl font-bold ${theme.text} mb-3 sm:mb-4 flex items-center gap-2`}
-      >
-        <Clock className={`w-5 h-5 ${theme.accent}`} />
-        Working Hours
-      </h3>
-      <div
-        className={`p-4 sm:p-5 rounded-2xl border ${theme.border} ${theme.accentLightBg}`}
-      >
-        <p className={`text-xs sm:text-sm ${theme.textSecondary} mb-1`}>
-          Status: **Open Now**
-        </p>
-        <p className={`text-sm sm:text-base font-semibold ${theme.text}`}>
-          {businessProfile.workingHours}
-        </p>
-      </div>
-    </div>
-  );
-
-  const ThemeSwitcher = () => (
-    <div className="animate-slideUp">
-      <h3
-        className={`text-lg sm:text-xl font-bold ${theme.text} mb-3 sm:mb-4 flex items-center gap-2`}
-      >
-        <Lightbulb className={`w-5 h-5 ${theme.accent}`} />
-        Switch Theme
-      </h3>
-      <div className="flex flex-wrap gap-3">
-        {Object.entries(themes).map(([key, val]) => (
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-200 animate-scaleIn overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <h3 className="text-lg font-bold text-gray-900">
+            Private Feedback ({userRating}★)
+          </h3>
           <button
-            key={key}
-            onClick={() => setCurrentTheme(key)}
-            title={key.charAt(0).toUpperCase() + key.slice(1)}
-            className={`w-12 h-12 rounded-full border-2 ${theme.border} ${
-              val.accentBg
-            } ${
-              currentTheme === key
-                ? "ring-4 ring-offset-2 ring-opacity-50 ring-yellow-500 scale-110 shadow-lg"
-                : "opacity-70 hover:opacity-100 hover:scale-105"
-            } transition-all duration-300`}
+            onClick={() => {
+              reset();
+              onClose();
+            }}
+            className="p-2 rounded-full hover:bg-gray-100 text-gray-500"
+            aria-label="Close feedback"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="px-5 py-6">
+          <p className="text-sm text-gray-600 mb-4">
+            We're sorry your experience wasn't great. Please help us improve.
+          </p>
+
+          <Input
+            name="feedback"
+            control={control}
+            label="Your Feedback"
+            placeholder="Describe what went wrong..."
+            isTextarea
+            rows={4}
+            rules={{ required: "Feedback is required" }}
           />
-        ))}
-      </div>
-    </div>
-  );
 
-  const FeedbackModal = () => {
-    if (!showFeedbackModal || userRating < 1 || userRating >= 3) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
-        <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 sm:p-8 shadow-2xl w-full max-w-md border border-gray-200 dark:border-gray-800 animate-scaleIn">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-              Private Feedback ({userRating} Star{userRating > 1 && "s"})
-            </h3>
+          <div className="mt-6 flex flex-col sm:flex-row gap-3">
             <button
+              type="button"
               onClick={() => {
-                setShowFeedbackModal(false);
-                setUserRating(0);
+                reset();
+                onClose();
               }}
-              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          <div className="mb-6">
-            <p className="text-center text-sm text-gray-600 dark:text-gray-400 mb-3">
-              We're sorry we missed the mark. Your feedback is private and helps
-              us improve:
-            </p>
-            <textarea
-              rows="4"
-              placeholder="Tell us what went wrong, your honest feedback is valuable..."
-              value={feedbackText}
-              onChange={(e) => setFeedbackText(e.target.value)}
-              className="w-full p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm resize-none"
-              required
-            />
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-3 mt-6">
-            <button
-              onClick={() => {
-                setShowFeedbackModal(false);
-                setUserRating(0);
-                setFeedbackText("");
-              }}
-              className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold transition-all duration-300 hover:bg-gray-100 dark:hover:bg-gray-800 text-sm sm:text-base"
+              className="w-full sm:w-1/2 px-4 py-3 rounded-xl border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 text-sm"
             >
               Cancel
             </button>
             <button
-              onClick={handleModalAction}
-              disabled={!feedbackText.trim()}
-              className={`flex-1 px-4 py-2.5 rounded-xl text-white font-semibold transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] text-sm sm:text-base
-                ${
-                  !feedbackText.trim()
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-700"
-                }
-              `}
+              type="submit"
+              disabled={feedbackMutation.isPending}
+              className="w-full sm:w-1/2 px-4 py-3 rounded-xl text-white font-semibold text-sm bg-slate-800 hover:bg-slate-900 disabled:bg-gray-400"
             >
-              Send Private Feedback
+              {feedbackMutation.isPending ? "Submitting..." : "Send Feedback"}
             </button>
           </div>
-        </div>
+        </form>
       </div>
+    </div>
+  );
+}
+
+/* ------------------------
+   Main Component (themed)
+   ------------------------*/
+export default function BusinessProfile() {
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [userRating, setUserRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+
+  const userId = useMemo(() => {
+    try {
+      return window.location.pathname.split("/").pop();
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const { data: userDataResponse } = useGetData({
+    queryKey: ["user", userId],
+    url: `/user/public?id=${userId}`,
+    options: { retry: 1 },
+  });
+
+  const userData = userDataResponse?.data ?? {};
+
+  const businessProfile = useMemo(() => {
+    const socials =
+      (userData?.socialLinks ?? [])
+        .map((link) => {
+          const IconComponent = PLATFORM_ICONS?.[link?.platform]?.icon;
+          return IconComponent
+            ? {
+                icon: IconComponent,
+                link: link?.url ?? "",
+                label: link?.platform,
+              }
+            : null;
+        })
+        .filter(Boolean) ?? [];
+
+    return {
+      name: userData?.businessName || userData?.fullName || "Business Name",
+      tagline: userData?.tagline || "",
+      industry: userData?.businessCategory || "General Business",
+      detailedAbout: userData?.detailedAbout || "",
+      coverPhoto:
+        userData?.coverPhoto?.url ??
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1600&q=80",
+      googleReviewLink: userData?.googleReviewLink,
+      averageRating: userData?.averageRating ?? 4.8,
+      totalReviews: userData?.totalReviews ?? 145,
+      website:
+        userData?.socialLinks?.find((l) => l?.platform === "Website")?.url ??
+        "",
+      workingHours: userData?.workingHours ?? "Mon - Fri: 9:00 AM - 6:00 PM",
+      contact: {
+        phone:
+          (userData?.phone?.dialCode && userData?.phone?.phoneNumber
+            ? `${userData?.phone?.dialCode} ${userData?.phone?.phoneNumber}`
+            : userData?.phone?.phoneNumber) ?? "",
+        email: userData?.email ?? "",
+        address: userData?.address ?? "Not Specified",
+      },
+      socials,
+      services: userData?.services ?? [],
+      servicesHeading: userData?.servicesHeading ?? "Our Services",
+      whatsapp: userData?.whatsapp ?? {},
+      location: userData?.location ?? "",
+      youtubeVideoUrl: userData?.youtubeVideoUrl ?? "",
+    };
+  }, [userData]);
+
+  /* ------------------------
+     event mutation + tracking
+     ------------------------*/
+  const eventMutation = usePostData();
+
+  const trackEvent = useCallback(
+    (type, meta = {}) => {
+      if (!userId) return;
+      try {
+        eventMutation.mutate({
+          url: "/event",
+          method: "POST",
+          data: { userId, type, meta },
+        });
+      } catch (err) {
+        // swallow
+      }
+    },
+    [userId]
+  );
+
+  useEffect(() => {
+    if (userDataResponse?.data?._id) {
+      setTimeout(() => trackEvent("view"), 300);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userDataResponse?.data?._id]);
+
+  /* ------------------------
+     Quick actions (themed)
+     ------------------------*/
+  const quickActions = useMemo(() => {
+    const waLink = buildWhatsAppLink(
+      businessProfile.whatsapp,
+      "Hi, I'm interested in your services."
     );
-  };
+    return [
+      {
+        key: "call",
+        icon: Phone,
+        label: "Call Us",
+        subtitle: businessProfile.contact.phone || "",
+        href: `tel:${businessProfile.contact.phone || ""}`,
+        eventType: "contact_call",
+      },
+      {
+        key: "whatsapp",
+        icon: MessageCircle,
+        label: "Message Us",
+        subtitle: "24/7 Live Support",
+        href: waLink,
+        eventType: "contact_whatsapp",
+      },
+      {
+        key: "email",
+        icon: Mail,
+        label: "Email",
+        subtitle: businessProfile.contact.email || "",
+        href: `mailto:${businessProfile.contact.email || ""}`,
+        eventType: "contact_email",
+      },
+      {
+        key: "location",
+        icon: MapPin,
+        label: "Location",
+        subtitle: "View on Maps",
+        href: businessProfile.location || "",
+        eventType: "contact_other",
+      },
+    ];
+  }, [businessProfile]);
+
+  const handleContactClick = useCallback(
+    (action) => {
+      if (!action?.eventType) {
+        trackEvent("contact_other", { label: action?.label });
+        return;
+      }
+      trackEvent(action.eventType, { label: action.label, href: action.href });
+    },
+    [trackEvent]
+  );
+
+  const handleSocialClick = useCallback(
+    (social) => {
+      console.log(social);
+      
+      const platformKey = normalizePlatformKey(social.label);
+      const eventType = `social_${platformKey}`;
+      trackEvent(eventType, { platform: social.label, href: social.link });
+    },
+    [trackEvent]
+  );
+
+  /* ------------------------
+     Native share (option A)
+     ------------------------*/
+  const onShare = useCallback(async () => {
+    const shareData = {
+      title: businessProfile?.name || "Business Profile",
+      text: businessProfile?.tagline || "Check this out",
+      url: window.location.href,
+    };
+
+    trackEvent("share_attempt", { location: "cover_header" });
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        trackEvent("share_other", { method: "native" });
+      } else {
+        toast.error("Sharing is not supported on this device/browser.");
+        trackEvent("share_unsupported", { userAgent: navigator.userAgent });
+      }
+    } catch (err) {
+      if (err && err.name !== "AbortError") {
+        trackEvent("share_error", { message: err?.message ?? "unknown" });
+      }
+    }
+  }, [businessProfile, trackEvent]);
+
+  /* ------------------------
+     Rating handler (unchanged)
+     ------------------------*/
+  const handleRatingClick = useCallback(
+    (rating) => {
+      setUserRating(rating);
+      setHoverRating(0);
+
+      if (rating >= 3) {
+        trackEvent("feedback_clicked_public", { rating });
+        window.open(
+          businessProfile?.googleReviewLink,
+          "_blank",
+          "noopener,noreferrer"
+        );
+      } else if (rating > 0) {
+        setShowFeedbackModal(true);
+        trackEvent("feedback_low_rating_open", { rating });
+      }
+    },
+    [trackEvent, businessProfile]
+  );
+
+  /* ------------------------
+     Services -> WhatsApp links (unchanged)
+     ------------------------*/
+  const servicesWithWhatsApp = useMemo(() => {
+    const waNumber = formatPhoneForWhatsApp(businessProfile.whatsapp);
+    return (businessProfile.services || []).map((service) => {
+      const message = `Hi, I'm interested in the service: ${
+        service.title || service.name
+      }`;
+      const waHref = waNumber
+        ? `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`
+        : `https://wa.me/?text=${encodeURIComponent(message)}`;
+      return { ...service, waHref };
+    });
+  }, [businessProfile.services, businessProfile.whatsapp]);
 
   return (
-    <div className={`min-h-screen transition-all duration-500 ${theme.bg}`}>
+    <div className="min-h-screen bg-gradient-to-br from-white via-slate-50 to-slate-100 transition-all duration-500">
       <style>{`
-        /* Global animation styles for component */
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes scaleIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-        .animate-fadeIn { animation: fadeIn 0.6s ease-out; }
-        .animate-slideUp { animation: slideUp 0.6s ease-out; }
-        .animate-scaleIn { animation: scaleIn 0.3s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+        .animate-fadeIn { animation: fadeIn 0.5s ease-out; }
+        .animate-slideUp { animation: slideUp 0.55s ease-out; }
+        .animate-scaleIn { animation: scaleIn 0.28s ease-out; }
       `}</style>
 
-      <ProfileHeader />
-      {/* Sticky Action Bar with big stars */}
-      <ActionButtons />
+      <ProfileHeader
+        coverPhoto={businessProfile.coverPhoto}
+        name={businessProfile.name}
+        tagline={businessProfile.tagline}
+        onShare={onShare}
+      />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
-        <div className="space-y-8 sm:space-y-12">
-          <SocialLinksSection />
-          <QuickActionsSection />
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
-            <div className="lg:col-span-2 space-y-8 sm:space-y-12">
-              <DetailedAboutSection />
-              <OfferingsSection />
-              <VideoSection />
+      {/* Sticky rating strip */}
+      {/* Sticky rating bar (mobile-friendly) */}
+      <div className="sticky top-0 z-30 px-4 py-3 sm:py-4 bg-white/70 backdrop-blur-xl border-b border-slate-200 shadow-sm">
+        <div className="max-w-xl mx-auto w-full">
+          <div className="flex flex-col items-center gap-2">
+            {/* Star Selection (mobile optimized) */}
+            <div className="w-full flex justify-center">
+              <div
+                className="flex items-center gap-1.5 bg-white/90 border border-slate-200 rounded-xl px-3 py-2 shadow-md"
+                onMouseLeave={() => setHoverRating(0)}
+              >
+                {[1, 2, 3, 4, 5].map((star) => {
+                  const filled =
+                    hoverRating >= star || (!hoverRating && userRating >= star);
+                  return (
+                    <Star
+                      key={star}
+                      onMouseEnter={() => setHoverRating(star)}
+                      onClick={() => handleRatingClick(star)}
+                      className={`w-10 h-10 cursor-pointer transition-all duration-200 ${
+                        filled
+                          ? "text-amber-400 fill-amber-400 scale-110"
+                          : "text-gray-300"
+                      } hover:scale-125`}
+                    />
+                  );
+                })}
+              </div>
             </div>
 
-            <div className="lg:col-span-1 space-y-6 sm:space-y-8">
-              <WorkingHoursSection />
-              <GallerySection />
-              <ThemeSwitcher />
-            </div>
+            <p className=" text-slate-600 mt-1">
+              {/* message to say what we mean by rating on basis of stars */}
+              {userRating === 0 && hoverRating === 0 && (
+                <span className="text-sm text-slate-600">
+                  Rate your experience!{" "}
+                  <Sparkles className="inline w-3 h-3 text-amber-500" /> Your
+                  feedback helps us improve!
+                </span>
+              )}
+              {hoverRating > 0 && (
+                <span className="text-xs text-slate-600">
+                  {hoverRating >= 3
+                    ? "Click to leave a public review on Google!"
+                    : "Click to provide private feedback."}
+                </span>
+              )}
+              {userRating > 0 && hoverRating === 0 && (
+                <span className="text-xs text-slate-600">
+                  {userRating >= 3
+                    ? "Redirecting to Google Reviews..."
+                    : "Opening private feedback form..."}
+                </span>
+              )}
+            </p>
           </div>
         </div>
       </div>
 
-      <FeedbackModal />
+      {/* Main content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="space-y-8 sm:space-y-10">
+          {/* Socials */}
+          <section className="animate-slideUp">
+            <h3 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
+              <Users className="w-5 h-5 text-slate-700" />
+              Connect with Us
+            </h3>
+            <div className="flex flex-wrap gap-3">
+              {businessProfile.socials.map((social, idx) => {
+                const Icon = social.icon;
+                return (
+                  <a
+                    key={idx}
+                    href={
+                      social.link.startsWith("http")
+                        ? social.link
+                        : `https://${social.link}`
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => handleSocialClick(social)}
+                    className="p-3 rounded-xl border border-slate-200 bg-white/60 backdrop-blur-sm hover:scale-105 transition-transform duration-200 shadow-sm"
+                    title={`Go to ${social.label}`}
+                  >
+                    <Icon className="w-5 h-5 text-slate-700" />
+                  </a>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* Quick Actions */}
+          <section className="animate-slideUp">
+            <h2 className="text-xl font-bold text-slate-900 mb-4">
+              Quick Contact
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {quickActions.map((action) => (
+                <a
+                  key={action.key}
+                  href={action.href || "#"}
+                  onClick={() => handleContactClick(action)}
+                  target={
+                    action.href?.startsWith("http") ||
+                    action.href?.startsWith("mailto")
+                      ? "_blank"
+                      : "_self"
+                  }
+                  rel="noreferrer"
+                  className="group p-4 rounded-2xl border border-slate-200 bg-white/70 backdrop-blur-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                >
+                  <action.icon className="w-6 h-6 text-slate-800 mb-3" />
+                  <div className="text-sm font-semibold text-slate-900">
+                    {action.label}
+                  </div>
+                  <div className="text-xs text-slate-600">
+                    {action.subtitle}
+                  </div>
+                </a>
+              ))}
+            </div>
+          </section>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10">
+            <div className="lg:col-span-2 space-y-8">
+              {/* About */}
+              <section className="animate-slideUp">
+                <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-slate-700" />
+                  About {businessProfile.name}
+                </h2>
+                <div className="p-6 rounded-2xl border border-slate-200 bg-white/60 backdrop-blur-sm shadow-sm">
+                  <div className="prose max-w-none text-slate-700">
+                    {String(businessProfile.detailedAbout)
+                      .split("\n\n")
+                      .map((p, i) => (
+                        <p key={i} className="text-sm leading-relaxed mb-4">
+                          {p}
+                        </p>
+                      ))}
+                  </div>
+                </div>
+              </section>
+
+              {/* Services */}
+              <section className="animate-slideUp">
+                <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                  <Briefcase className="w-5 h-5 text-slate-700" />
+                  {businessProfile.servicesHeading}
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {servicesWithWhatsApp.map((service, idx) => (
+                    <div
+                      key={idx}
+                      className="p-5 rounded-2xl border border-slate-200 bg-white/60 backdrop-blur-sm hover:shadow-lg transition-all duration-300"
+                    >
+                      <h3 className="text-base font-bold text-slate-900 mb-2">
+                        {service.title || service.name}
+                      </h3>
+                      <p className="text-sm text-slate-600 mb-4">
+                        {service.description || service.desc}
+                      </p>
+                      <a
+                        href={service.waHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() =>
+                          trackEvent("service_inquiry", {
+                            service: service.title || service.name,
+                            href: service.waHref,
+                          })
+                        }
+                        className="inline-flex items-center text-sm font-semibold text-slate-800 hover:gap-2 transition-all duration-200"
+                      >
+                        Query on WhatsApp
+                        <ChevronRight className="w-4 h-4 ml-1" />
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              {/* YouTube / Showcase */}
+              {businessProfile.youtubeVideoUrl && (
+                <section className="animate-slideUp">
+                  <div className="aspect-video w-full overflow-hidden rounded-2xl shadow-xl border border-slate-200 bg-white/60">
+                    <iframe
+                      title="Showcase Video"
+                      width="100%"
+                      height="100%"
+                      src={`https://www.youtube.com/embed/${businessProfile.youtubeVideoUrl}`}
+                      allowFullScreen
+                      className="w-full h-full"
+                    />
+                  </div>
+                </section>
+              )}
+            </div>
+
+            {/* Right column: Contact details, hours, small CTA */}
+            <aside className="space-y-6">
+              <div className="p-5 rounded-2xl border border-slate-200 bg-gradient-to-br from-white/60 to-slate-50/60 backdrop-blur-sm shadow-md">
+                <h4 className="text-sm font-bold text-slate-900 mb-3">
+                  Get In Touch
+                </h4>
+                <a
+                  href={buildWhatsAppLink(
+                    businessProfile.whatsapp,
+                    "Hi, I'm interested in your services."
+                  )}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => trackEvent("cta_whatsapp")}
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-800 text-white font-semibold text-sm hover:bg-slate-900 transition-all"
+                >
+                  Message on WhatsApp
+                </a>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </main>
+
+      <footer className="text-center py-8 text-xs text-slate-600">
+        © {new Date().getFullYear()} {businessProfile.name} • Powered by
+        Synconnect Business
+      </footer>
+
+      <FeedbackModalInner
+        visible={showFeedbackModal}
+        userRating={userRating}
+        onClose={() => {
+          setShowFeedbackModal(false);
+          setUserRating(0);
+        }}
+        userId={userId}
+        trackEvent={trackEvent}
+      />
     </div>
   );
 }

@@ -60,7 +60,7 @@ const StepSocials = ({ control, watch }) => {
                 onClick={() => handleTogglePlatform(platform)}
                 className={`flex items-center px-3 py-2 text-sm rounded-full transition-all border shadow-sm ${
                   isSelected
-                    ? `bg-lime-500 text-white border-lime-600`
+                    ? `bg-primary text-white border-primary-hover`
                     : `bg-white border-gray-200 text-gray-600 hover:bg-gray-100`
                 }`}
               >

@@ -2,21 +2,15 @@ import { useQuery } from "@tanstack/react-query";
 import useFetcher from "./useFetcher";
 import { useNavigate } from "react-router-dom";
 
-const useGetData = ({ queryKey, url, options, shouldValidate = true }) => {
+const useGetData = ({ queryKey, url, options = {}, shouldValidate = true }) => {
   const { jsonFetcher } = useFetcher();
   const navigate = useNavigate();
-  const defaultErrorOptions = {
-    onError: (error) => {
-      if (error?.response?.status === 401) {
-        navigate("/login");
-      }
 
-      if (options?.onError) {
-        options.onError(error);
-      }
-    },
-  };
+  // 1. Destructure and remove the callbacks from the options object
+  //    before spreading the rest of the options later.
+  const { ...restOptions } = options;
 
+  // 2. Base Query Configuration (static)
   const baseOptions = {
     queryKey,
     queryFn: () => jsonFetcher({ url, method: "GET" }),
@@ -24,24 +18,13 @@ const useGetData = ({ queryKey, url, options, shouldValidate = true }) => {
     cacheTime: 10 * 60 * 1000,
   };
 
+  // 3. Define the merged callbacks using a consistent pattern
+
+  // 4. Combine all options
   const finalOptions = {
     ...baseOptions,
-    ...options,
-    ...(shouldValidate ? defaultErrorOptions : {}),
+    ...restOptions,
   };
-
-  if (shouldValidate) {
-    const originalOnError = finalOptions.onError;
-    const originalOnSuccess = finalOptions.onSuccess;
-
-    finalOptions.onError = (error) => {
-      originalOnError?.(error);
-    };
-
-    finalOptions.onSuccess = (data) => {
-      originalOnSuccess?.(data);
-    };
-  }
 
   return useQuery(finalOptions);
 };

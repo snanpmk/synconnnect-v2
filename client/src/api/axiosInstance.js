@@ -2,55 +2,120 @@
 import axios from "axios";
 import useAuthStore from "../store/useAuthStore";
 
+// -------------------------------
+// BASE CONFIG
+// -------------------------------
+const BASE_URL =
+  import.meta.env.VITE_APP_API_BASE_URL || "http://localhost:5000/api";
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_APP_API_BASE_URL || "http://localhost:5000/api",
-  withCredentials: true, // allows cookies for refresh token auth
+  baseURL: BASE_URL,
+  withCredentials: true,
 });
 
-// ✅ Request Interceptor
-api.interceptors.request.use(async (config) => {
-  const { accessToken, setAccessToken, clearAuth } = useAuthStore.getState();
-  let token = accessToken;
+// -------------------------------
+// GLOBAL REFRESH CONTROL
+// -------------------------------
+let isRefreshing = false;
+let refreshPromise = null;
 
-  // Skip refresh for auth endpoints
-  const skipRefresh =
-    config.url.includes("/auth/login") ||
-    config.url.includes("/auth/google") ||
-    config.url.includes("/auth/register") ||
-    config.url.includes("/auth/refresh");
+// APIs that NEVER need token
+const SKIP_REFRESH_URLS = [
+  "/auth/login",
+  "/auth/google",
+  "/auth/register",
+  "/auth/refresh",
 
-  if (!token && !skipRefresh) {
-    try {
-      const res = await axios.get(
-        `${import.meta.env.VITE_APP_API_BASE_URL}/auth/refresh`,
-        { withCredentials: true }
-      );
+  // 🔥 Your pages
+  "/event", // analytics events
+  "/user/public", // if any public fetch
+];
 
-      token = res.data.accessToken;
-      setAccessToken(token);
-    } catch (err) {
-      console.error("Token refresh failed:", err);
-      if (typeof clearAuth === "function") clearAuth();
-      window.location.href = "/login";
-      return Promise.reject(err);
+// Check if refresh should be skipped
+const shouldSkipRefresh = (url = "") =>
+  SKIP_REFRESH_URLS.some((u) => url.includes(u));
+
+// -------------------------------
+// REQUEST INTERCEPTOR
+// -------------------------------
+api.interceptors.request.use(
+  async (config) => {
+    const { accessToken, setAccessToken, clearAuth } = useAuthStore.getState();
+
+    let token = accessToken;
+
+    // -------------------------------
+    // 1️⃣ Skip refresh logic entirely for public/event routes
+    // -------------------------------
+    if (shouldSkipRefresh(config.url)) {
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
     }
-  }
 
-  if (token) {
+    // -------------------------------
+    // 2️⃣ If token exists → attach it
+    // -------------------------------
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+      return config;
+    }
+
+    // -------------------------------
+    // 3️⃣ If no token → attempt a SINGLE refresh
+    // -------------------------------
+    if (!isRefreshing) {
+      isRefreshing = true;
+
+      refreshPromise = axios
+        .get(`${BASE_URL}/auth/refresh`, {
+          withCredentials: true,
+        })
+        .then((res) => {
+          const newToken = res?.data?.accessToken;
+          if (!newToken) throw new Error("Refresh failed: No token returned.");
+
+          setAccessToken(newToken);
+          isRefreshing = false;
+          return newToken;
+        })
+        .catch((err) => {
+          console.error("❌ Token refresh failed:", err.message);
+          isRefreshing = false;
+          clearAuth();
+          window.location.href = "/login";
+          throw err;
+        });
+    }
+
+    // Wait for the same refreshPromise for ALL simultaneous API calls
+    token = await refreshPromise;
+
+    // Attach new token
     config.headers.Authorization = `Bearer ${token}`;
-  }
 
-  return config;
-});
+    return config;
+  },
 
-// ✅ Optional: Global Response Error Handler
+  (error) => Promise.reject(error)
+);
+
+// -------------------------------
+// RESPONSE INTERCEPTOR
+// -------------------------------
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+
+  async (error) => {
+    const { clearAuth } = useAuthStore.getState();
+
+    // Unauthorized after refresh → force logout
     if (error?.response?.status === 401) {
-      useAuthStore.getState().clearAuth?.();
+      clearAuth();
       window.location.href = "/login";
     }
+
     return Promise.reject(error);
   }
 );

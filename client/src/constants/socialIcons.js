@@ -51,10 +51,11 @@ import {
   SiGoogle,
   SiSlack,
 } from "react-icons/si";
+import { IoGlobeSharp } from "react-icons/io5";
 
 export const PLATFORM_ICONS = {
   // Web & Blogging
-  Website: { icon: SiAboutdotme, color: "text-gray-700" },
+  Website: { icon: IoGlobeSharp, color: "text-gray-700" },
   Substack: { icon: SiSubstack, color: "text-orange-500" },
   Hashnode: { icon: SiHashnode, color: "text-blue-500" },
   WordPress: { icon: SiWordpress, color: "text-blue-700" },

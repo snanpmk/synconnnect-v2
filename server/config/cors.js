@@ -8,6 +8,7 @@ const allowedOrigins = [
   "http://localhost:5173", // always allow dev
   "https://synconnect.in", // always allow prod
   "https://www.synconnect.in",
+  "http://192.168.0.130:5173",
 ];
 
 const corsOptions = {

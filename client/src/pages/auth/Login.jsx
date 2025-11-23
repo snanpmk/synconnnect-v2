@@ -9,7 +9,7 @@ const LoginHeader = () => {
   return (
     <div className="text-center mb-8 sm:mb-10">
       <div className="relative inline-block mb-6 sm:mb-8">
-        <div className="absolute inset-0 bg-gradient-to-br from-lime-400 to-emerald-400 rounded-2xl blur-3xl opacity-40 animate-pulse"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary to-emerald-400 rounded-2xl blur-3xl opacity-40 animate-pulse"></div>
         <div className="relative">
           <img
             src={synconnectTypoGraphy}
@@ -54,14 +54,14 @@ const Divider = () => (
 );
 
 const TermsAndPrivacyInfo = () => (
-  <div className="bg-lime-400/5 border border-lime-400/20 rounded-lg p-3 sm:p-4">
+  <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 sm:p-4">
     <p className="text-zinc-300 text-xs sm:text-sm leading-relaxed text-center">
       By continuing, you agree to our{" "}
-      <span className="text-lime-400 font-semibold hover:underline cursor-pointer">
+      <span className="text-primary font-semibold hover:underline cursor-pointer">
         Terms of Service
       </span>{" "}
       and{" "}
-      <span className="text-lime-400 font-semibold hover:underline cursor-pointer">
+      <span className="text-primary font-semibold hover:underline cursor-pointer">
         Privacy Policy
       </span>
     </p>
@@ -83,7 +83,7 @@ const LoginFooter = () => (
   <div className="text-center mt-6 sm:mt-8 space-y-1 sm:space-y-2">
     <p className="text-zinc-500 text-xs sm:text-sm">
       Don't have an account?{" "}
-      <span className="text-lime-400 font-semibold hover:underline cursor-pointer">
+      <span className="text-primary font-semibold hover:underline cursor-pointer">
         Sign up with Google
       </span>
     </p>

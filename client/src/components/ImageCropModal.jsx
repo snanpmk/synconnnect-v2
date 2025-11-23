@@ -75,8 +75,8 @@ const ImageCropModal = ({ src, aspect, onComplete, onClose }) => {
         {/* Header: Light Theme */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h3 className="text-xl font-semibold text-gray-800 flex items-center">
-            {/* Icon color updated to lime-400/500 */}
-            <Crop className="w-5 h-5 mr-2 text-lime-500" />
+            {/* Icon color updated to primary/500 */}
+            <Crop className="w-5 h-5 mr-2 text-primary-bg-primary-hover" />
             Crop Image
           </h3>
           <button
@@ -114,7 +114,7 @@ const ImageCropModal = ({ src, aspect, onComplete, onClose }) => {
               value={zoom}
               onChange={(e) => setZoom(parseFloat(e.target.value))}
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-lg"
-              // Custom color for range input thumb/track: updated to lime-400 (#a3e635)
+              // Custom color for range input thumb/track: updated to primary (#a3e635)
               style={{ accentColor: "#a3e635" }}
             />
           </div>
@@ -127,9 +127,9 @@ const ImageCropModal = ({ src, aspect, onComplete, onClose }) => {
             </button>
             <button
               onClick={handleComplete}
-              // Button background updated to lime-400
-              // Hover effect updated to a slightly darker shade, lime-500
-              className="flex-1 px-4 py-2 bg-lime-400 text-white rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center font-semibold shadow-md"
+              // Button background updated to primary
+              // Hover effect updated to a slightly darker shade, primary-bg-primary-hover
+              className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors flex items-center justify-center font-semibold shadow-md"
             >
               <Check className="w-5 h-5 mr-2" />
               Apply Crop

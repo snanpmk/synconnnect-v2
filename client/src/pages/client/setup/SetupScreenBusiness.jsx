@@ -16,7 +16,9 @@ import { useNavigate } from "react-router-dom";
 
 import usePostData from "../../../api/usePostData";
 
+import { useEffect } from "react";
 import toast from "react-hot-toast";
+import useGetData from "../../../api/useGetData";
 import { useFirebaseImageUpload } from "../../../hooks/useFirebaseImageUpload";
 import { processImage } from "../../../utils/ImageCompress&resize";
 import StepContact from "./components/StepContact";
@@ -34,7 +36,8 @@ const defaultPhoneState = {
 
 const INITIAL_FORM_STATE = {
   // Step 1: Core Info
-  name: "",
+  businessName: "",
+  businessCategory: "",
   tagline: "",
   detailedAbout: ``,
 
@@ -47,15 +50,21 @@ const INITIAL_FORM_STATE = {
 
   // Step 3: Media & Reviews
   coverPhoto: "",
-  youtubeId: "",
+  existingCoverPhoto: {
+    url: "",
+    fullPath: "",
+  },
+
+  // youtubeId: "",
   googleReviewLink: "",
+  youtubeVideoUrl: "",
 
   // Step 4: Socials (useFieldArray)
-  socials: [], // Start empty
+  socialLinks: [], // Start empty
 
   // Step 5: Services & Offerings (useFieldArray)
-  offeringsHeading: "Services",
-  offerings: [],
+  servicesHeading: "Services",
+  services: [],
 };
 
 const stepsConfig = [
@@ -65,7 +74,7 @@ const stepsConfig = [
     icon: Building2,
     component: StepCoreInfo,
     description: "Name, tagline, and quick summary.",
-    fields: ["name", "tagline", "detailedAbout"],
+    fields: ["businessName", "businessCategory", "tagline", "detailedAbout"],
   },
   {
     id: 2,
@@ -74,7 +83,7 @@ const stepsConfig = [
     component: StepContact,
     description: "Phone, email, and physical address.",
     // RHF validation handles nested fields automatically, but list them for manual trigger
-    fields: ["phone", "whatsapp", "email", "address"],
+    fields: ["phone", "whatsapp", "email", "location"],
   },
   {
     id: 3,
@@ -82,7 +91,7 @@ const stepsConfig = [
     icon: Star,
     component: StepMediaAndReview,
     description: "Cover photo and public links.",
-    fields: ["coverPhoto"], // Only coverPhoto is required/validated by RHF rules
+    fields: ["coverPhoto", "youtubeVideoUrl", "googleReviewLink"], // Only coverPhoto is required/validated by RHF rules
   },
   {
     id: 4,
@@ -107,8 +116,7 @@ const stepsConfig = [
 // ====================================================================
 
 export default function SetupScreenBusiness({ onSetupComplete }) {
-  // --- 1. RHF Initialization (Centralized State) ---
-
+  const userId = localStorage?.getItem("userId");
   const navigate = useNavigate();
   const {
     handleSubmit,
@@ -117,11 +125,54 @@ export default function SetupScreenBusiness({ onSetupComplete }) {
     setValue,
     getValues,
     trigger,
+    reset,
     formState: { errors },
   } = useForm({
     defaultValues: INITIAL_FORM_STATE,
     mode: "onBlur", // Use onBlur for smoother field-level validation
   });
+
+  const {
+    data: existingProfileRes,
+    isLoading: isProfileLoading,
+    isError: isProfileError,
+    error: profileFetchError,
+  } = useGetData({
+    queryKey: ["business-profile", userId],
+    url: `/user/public?id=${userId}`,
+  });
+
+  console.log(existingProfileRes);
+
+  useEffect(() => {
+    if (existingProfileRes?.data) {
+      // reset the state
+      const profileData = existingProfileRes.data;
+
+      // Map existing profile data to form fields
+      reset({
+        businessName: profileData.businessName || "",
+        businessCategory: profileData.businessCategory || "",
+        tagline: profileData.tagline || "",
+        detailedAbout: profileData.detailedAbout || "",
+        phone: profileData.phone || { ...defaultPhoneState },
+        whatsapp: profileData.whatsapp || { ...defaultPhoneState },
+        email: profileData.email || "",
+        location: profileData.location || "",
+        useSameNumberForWhatsapp:
+          profileData.useSameNumberForWhatsapp !== undefined
+            ? profileData.useSameNumberForWhatsapp
+            : true,
+        coverPhoto: profileData.coverPhoto || { url: "", fullPath: "" },
+        coverPhotoExistingPath: profileData.coverPhoto?.fullPath || "",
+        youtubeVideoUrl: profileData.youtubeVideoUrl || "",
+        googleReviewLink: profileData.googleReviewLink || "",
+        socialLinks: profileData.socialLinks || [],
+        servicesHeading: profileData.servicesHeading || "Services",
+        services: profileData.services || [],
+      });
+    }
+  }, [existingProfileRes, reset, setValue]);
 
   const {
     currentStep,
@@ -135,11 +186,9 @@ export default function SetupScreenBusiness({ onSetupComplete }) {
 
   const { upload, update } = useFirebaseImageUpload();
 
-  const [setupSuccess, setSetupSuccess] = useState(false);
-  const userId = localStorage?.getItem("userId");
-
   const validateCurrentStep = async (stepId) => {
     const stepConfig = stepsConfig[stepId - 1];
+    console.log(stepConfig);
 
     let fieldsToValidate = [];
     if (stepConfig.fields) {
@@ -149,16 +198,16 @@ export default function SetupScreenBusiness({ onSetupComplete }) {
           // Special handling for nested structures like phone.phoneNumber or offerings.*
           if (f === "phone" || f === "whatsapp")
             return [f + ".phoneNumber", f + ".countryCode"];
-          if (f === "offerings")
-            return getValues("offerings")
+          if (f === "services")
+            return getValues("services")
               .map((_, i) => [
-                `offerings.${i}.title`,
-                `offerings.${i}.description`,
+                `services.${i}.title`,
+                `services.${i}.description`,
               ])
               .flat();
-          if (f === "socials")
-            return getValues("socials")
-              .map((_, i) => [`socials.${i}.url`])
+          if (f === "socialLinks")
+            return getValues("socialLinks")
+              .map((_, i) => [`socialLinks.${i}.url`])
               .flat();
           return f;
         })
@@ -192,16 +241,11 @@ export default function SetupScreenBusiness({ onSetupComplete }) {
     }
   };
 
-  // --- 4. Submission Logic ---
-
   const { mutate: postData, isPending } = usePostData({
     onSuccess: (data) => {
       // setSetupSuccess(true);
       console.log(data);
-
-      if (onSetupComplete) {
-        onSetupComplete(data);
-      }
+      navigate("/dashboard");
     },
     onError: (error) => {
       toast.error(error?.message);
@@ -220,25 +264,44 @@ export default function SetupScreenBusiness({ onSetupComplete }) {
       return;
     }
 
-    // if (data.coverPhoto instanceof File) {
-    //   data.coverPhoto = await uploadToCloudinary(data.coverPhoto);
-    // }
-
-    let coverImage = "";
+    let coverPhoto = "";
     if (data.coverPhoto) {
-      const processed = await processImage(data.coverPhoto, "banner", {
-        maxKB: 400,
-        outputType: "image/jpeg",
-      });
-
-      if (!processed) {
-        alert("Image processing failed.");
-        return;
+      if (data.coverPhotoExistingPath) {
+        if (data.coverPhoto instanceof File) {
+          const processed = await processImage(data.coverPhoto, "banner", {
+            maxKB: 400,
+            outputType: "image/jpeg",
+          });
+          if (!processed) {
+            alert("Image processing failed.");
+            return;
+          }
+          coverPhoto = await update(
+            processed,
+            data.coverPhotoExistingPath,
+            `users/${data?.email}/cover-image`
+          );
+        } else {
+          coverPhoto = {
+            url: data.coverPhoto.url,
+            fullPath: data.coverPhotoExistingPath,
+          };
+        }
+      } else if (data.coverPhoto instanceof File) {
+        const processed = await processImage(data.coverPhoto, "banner", {
+          maxKB: 400,
+          outputType: "image/jpeg",
+        });
+        if (!processed) {
+          alert("Image processing failed.");
+          return;
+        }
+        console.log("2️⃣ Uploading new image...");
+        coverPhoto = await upload(processed, `users/${userId}/cover-image`);
+      } else {
+        coverPhoto = null;
       }
-
-      console.log("2️⃣ Uploading image...");
-      coverImage = await upload(processed, `users/${data.email}/cover-image`);
-      data.coverImage = coverImage;
+      data.coverPhoto = coverPhoto;
     }
 
     const finalData = {
@@ -256,8 +319,6 @@ export default function SetupScreenBusiness({ onSetupComplete }) {
     console.log(res);
   };
 
-  // --- 5. Rendering Setup ---
-
   const currentStepData = stepsConfig[currentStep - 1];
   const CurrentStepComponent = currentStepData.component;
   const CurrentStepIcon = currentStepData.icon;
@@ -272,32 +333,6 @@ export default function SetupScreenBusiness({ onSetupComplete }) {
     trigger,
     errors,
   };
-
-  if (setupSuccess) {
-    return (
-      <div
-        className={`h-screen flex items-center justify-center bg-gray-50 p-4`}
-      >
-        <div
-          className={`p-8 rounded-xl shadow-2xl bg-white max-w-md w-full text-center border-t-4 border-green-500`}
-        >
-          <Check className="w-12 h-12 text-green-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            Setup Complete!
-          </h1>
-          <p className="text-sm text-gray-600 mb-6">
-            Your business profile is now active.
-          </p>
-          <button
-            onClick={() => console.log("Continue to Dashboard")}
-            className={`px-5 py-2 text-sm font-semibold rounded-lg text-white bg-green-500 hover:bg-green-600 transition shadow-md`}
-          >
-            Go to Dashboard
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     // Wrap the entire content in a form using RHF's handleSubmit
@@ -337,7 +372,7 @@ export default function SetupScreenBusiness({ onSetupComplete }) {
               className={`flex items-start mb-4 border-b border-gray-200 pb-3`}
             >
               <CurrentStepIcon
-                className={`w-6 h-6 mr-3 mt-1 flex-shrink-0 text-lime-500`}
+                className={`w-6 h-6 mr-3 mt-1 flex-shrink-0 text-primary`}
               />
               <div>
                 <h2 className={`text-xl font-bold text-gray-900`}>
@@ -382,9 +417,9 @@ export default function SetupScreenBusiness({ onSetupComplete }) {
                   key={step.id}
                   className={`w-3 h-3 rounded-full transition-all duration-300 cursor-pointer ${
                     isCurrent
-                      ? `bg-lime-500 scale-110 shadow-md`
+                      ? `bg-primary-hover-dark scale-110 shadow-md`
                       : isComplete
-                      ? "bg-green-500 hover:bg-green-600"
+                      ? "bg-primary hover:bg-primary-hover"
                       : "bg-gray-300 hover:bg-gray-400"
                   }`}
                   onClick={() => setCurrentStep(step.id)}
@@ -400,7 +435,7 @@ export default function SetupScreenBusiness({ onSetupComplete }) {
               type="button"
               onClick={handleNextStep}
               disabled={isPending}
-              className={`flex items-center px-3 py-2 text-sm rounded-lg text-white font-semibold transition-all duration-300 shadow-md bg-lime-500 hover:bg-lime-700 disabled:bg-gray-400 disabled:cursor-not-allowed`}
+              className={`flex items-center px-3 py-2 text-sm rounded-lg text-white font-semibold transition-all duration-300 shadow-md bg-primary hover:bg-lime-700 disabled:bg-gray-400 disabled:cursor-not-allowed`}
             >
               <span className="sr-only">Next</span>
               <ChevronRight className="w-5 h-5" />

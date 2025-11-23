@@ -20,7 +20,7 @@ const ImageInputField = React.memo(
     return (
       <div className="mb-4">
         <label className="text-sm font-medium text-gray-600 mb-2 flex items-center">
-          <Camera className="w-4 h-4 mr-2 text-lime-500" />
+          <Camera className="w-4 h-4 mr-2 text-primary" />
           {label}
           <span className="text-red-500">*</span>
         </label>
@@ -44,7 +44,7 @@ const ImageInputField = React.memo(
 
           <label
             htmlFor={id}
-            className="cursor-pointer w-full px-3 py-2 bg-lime-500 text-white rounded-lg flex items-center justify-center"
+            className="cursor-pointer w-full px-3 py-2 bg-primary text-white rounded-lg flex items-center justify-center"
           >
             <UploadCloud className="w-5 h-5 mr-2" />
             {file ? "Change Photo" : "Upload Photo"}

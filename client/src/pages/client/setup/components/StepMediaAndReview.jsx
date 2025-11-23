@@ -12,12 +12,12 @@ const StepMediaAndReview = ({ control }) => {
         name="coverPhoto" // This registers the field with RHF
         label="Cover Photo"
         control={control}
-        aspectRatio={"banner"}
+        aspectRatio={"landscape"}
         maxFileSize={10 * 1024 * 1024}
         rules={{ required: "A cover photo is required for the listing." }}
       />
       <Input
-        name="youtubeId"
+        name="youtubeVideoUrl"
         label="YouTube Video ID (Optional)"
         icon={FaYoutube}
         control={control} // Added control prop
@@ -29,6 +29,13 @@ const StepMediaAndReview = ({ control }) => {
         icon={Star}
         control={control} // Added control prop
         placeholder="e.g., https://g.page/r/..."
+        // rules with proper regex pattern to look like a proper link
+        rules={{
+          pattern: {
+            value: /^(ftp|http|https):\/\/[^ "]+$/,
+            message: "Please enter a valid URL",
+          },
+        }}
       />
     </>
   );

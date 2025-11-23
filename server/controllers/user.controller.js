@@ -91,9 +91,11 @@ export const updateUserSetup = async (req, res) => {
       "socialLinks",
       "businessName",
       "businessCategory",
-      "coverImage",
+      "coverPhoto",
       "servicesHeading",
       "services",
+      "youtubeVideoUrl",
+      "googleReviewLink",
     ];
 
     const safeUpdate = {};

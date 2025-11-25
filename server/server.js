@@ -1,12 +1,21 @@
 // server/server.js
 import dotenv from "dotenv";
 import http from "http";
+import path from "path";
+import { fileURLToPath } from "url";
+
 import app from "./app.js";
 import connectDB from "./config/database.js";
 import logger from "./utils/logger.js";
 
-// Load environment variables
-dotenv.config();
+// Fix __dirname in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load environment variables from parent folder
+dotenv.config({
+  path: path.resolve(__dirname, "../.env"),
+});
 
 // Create HTTP server
 const server = http.createServer(app);

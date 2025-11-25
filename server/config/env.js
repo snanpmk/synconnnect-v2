@@ -1,6 +1,7 @@
 // server/config/env.config.js
 
 import dotenv from "dotenv";
+import { fileURLToPath } from "url";
 
 // Fix __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);

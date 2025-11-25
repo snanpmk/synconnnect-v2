@@ -2,6 +2,7 @@ import express from "express";
 import helmet from "helmet";
 import morgan from "morgan";
 import dotenv from "dotenv";
+import path from "path";
 
 import routes from "./routes/index.js";
 import errorHandler from "./middleware/error.middleware.js";

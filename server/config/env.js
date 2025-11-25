@@ -1,31 +1,20 @@
-// server/config/env.config.js
-
 import dotenv from "dotenv";
+import path from "path";
 import { fileURLToPath } from "url";
 
 // Fix __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load environment variables from parent folder
+// Load .env from synconnnect-v2/.env (one level up)
 dotenv.config({
-  path: path.resolve(__dirname, "../../.env"),
+  path: path.resolve(__dirname, "../.env"),
 });
-// define environments
-const ENV = process.env.NODE_ENV || "development";
 
-const CONFIG = {
-  development: {
-    CLIENT_URL: "http://localhost:2000",
-    MONGO_URI: process.env.MONGO_URI_DEV,
-    PORT: process.env.PORT || 5000,
-  },
-  production: {
-    CLIENT_URL: "https://synconnect.in",
-    MONGO_URI: process.env.MONGO_URI_PROD,
-    PORT: process.env.PORT || 5000,
-  },
+// Export all environment variables
+export default {
+  MONGO_URI: process.env.MONGO_URI,
+  SENDGRID_API_KEY: process.env.SENDGRID_API_KEY,
+  JWT_SECRET: process.env.JWT_SECRET,
+  PORT: process.env.PORT,
 };
-
-// export current environment’s config
-export default CONFIG[ENV];

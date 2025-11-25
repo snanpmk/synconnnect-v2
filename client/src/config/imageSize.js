@@ -12,9 +12,9 @@ export const IMAGE_CONFIG = {
     label: "Portrait (3:4)",
   },
   landscape: {
-    aspect: 16 / 9,
+    aspect: 16 / 9, // 1.777...
     width: 1000,
-    height: 562,
+    height: Math.round(1000 * (9 / 16)), // 562.5 → 562
     label: "Landscape (16:9)",
   },
   banner: {

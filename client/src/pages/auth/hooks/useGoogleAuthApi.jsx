@@ -4,21 +4,21 @@ import { useGoogleLogin } from "@react-oauth/google";
 import usePostData from "../../../api/usePostData";
 import useAuthStore from "../../../store/useAuthStore";
 import toast from "react-hot-toast";
+import { getUserIdFromToken } from "../../../utils/getUserIdFromToken";
 
 const useGoogleAuthApi = () => {
   const GOGGLE_AUTH_API = "/auth/login";
-  const { setUser, setAccessToken } = useAuthStore.getState();
+  const { setUser, setAccessToken, setUserId } = useAuthStore.getState();
   const navigate = useNavigate();
-  const clearIntendedPath = () => {
-    localStorage.removeItem("intendedPath");
-  };
 
   const googleLoginMutation = usePostData({});
 
   const onSuccess = (res) => {
     const { user, accessToken, message } = res;
     console.log(res);
-    localStorage.setItem("userId", user?._id);
+    const userId = getUserIdFromToken(accessToken);
+    setUserId(userId);
+
     setUser(user);
     setAccessToken(accessToken);
     toast.success(message, "success");
@@ -28,7 +28,6 @@ const useGoogleAuthApi = () => {
     } else {
       navigate("/dashboard");
     }
-    clearIntendedPath();
   };
 
   const onError = (error) => {

@@ -5,8 +5,10 @@ const useAuthStore = create((set) => ({
   user: null,
   accessToken: null,
   intendedPath: "/",
+  userId: null,
 
   setUser: (user) => set({ user }),
+  setUserId: (userId) => set({ userId }),
   setAccessToken: (token) => set({ accessToken: token }),
 
   setIntendedPath: (path) => set({ intendedPath: path }),

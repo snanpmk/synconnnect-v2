@@ -43,7 +43,7 @@ export const googleAuthController = async (req, res) => {
     }
 
     const googleUser = await userInfoResponse.json();
-    const { name, email, picture } = googleUser;
+    const { name, email } = googleUser;
 
     if (!email) {
       return res.status(400).json({ message: "Google user email missing" });
@@ -58,7 +58,6 @@ export const googleAuthController = async (req, res) => {
       user = await User.create({
         fullName: name,
         email,
-        profilePicUrl: picture,
         paymentStatus: "pending", // new users start pending
       });
       userStatus = "new";

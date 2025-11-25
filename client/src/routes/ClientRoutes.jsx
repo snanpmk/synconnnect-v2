@@ -8,18 +8,12 @@ import ClientDashboard from "../pages/client/ClientDashboard";
 import Profile from "../pages/client/Profile";
 import SetupScreenBusiness from "../pages/client/setup/SetupScreenBusiness";
 import HasProfileSetup from "../hoc/HasProfileSetup";
+import LandingMain from "../pages/landing/LandingMain";
 
 export default function ClientRoutes() {
   return (
     <Routes>
-      <Route
-        path="profile"
-        element={
-          <ProtectedRoute>
-            <Profile />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="profile/:id" element={<Profile />} />
       <Route
         path="business/:id"
         element={
@@ -28,6 +22,8 @@ export default function ClientRoutes() {
           // </ProtectedRoute>
         }
       />
+
+      <Route path="/" element={<LandingMain />} />
       <Route
         path="setup"
         element={

@@ -4,6 +4,8 @@ const useProfileSetupStore = create((set) => ({
   currentStep: 1,
   totalSteps: 5,
   validationErrors: {},
+  user: {},
+  setUser: (user) => set({ user }),
 
   goToNextStep: () =>
     set((state) => ({

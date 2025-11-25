@@ -1,0 +1,18 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+@import "tailwindcss";
+@import "./themes/variables.css";
+@import "./themes/base.css";
+@import "./components/glass.css";
+@import "./components/cards.css";
+@import "./utilities/helpers.css";
+@import "./components/animations.css";
+
+@theme {
+  --breakpoint-xs: 30rem;
+  --breakpoint-sm: 40rem;
+  --breakpoint-md: 58.4375rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+  --breakpoint-2xl: 96rem;
+  --breakpoint-3xl: 120rem;
+}

@@ -1,0 +1,79 @@
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInSlideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+    max-height: 0;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 24rem; /* Matches max-h-96 */
+  }
+}
+
+@keyframes fadeOutSlideUp {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 24rem;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+    max-height: 0;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@layer animations {
+  /* Ensure container flex children take full height and width */
+  .container-slide > * {
+    flex: 1 1 50%;
+    width: 100%; /* full width */
+    height: 100%; /* full height */
+    transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .fadeInSlideDown {
+    animation: fadeInSlideDown 0.5s ease forwards;
+  }
+
+  .fadeOutSlideUp {
+    animation: fadeOutSlideUp 0.5s ease forwards;
+  }
+}
+
+/* styles.css or global.css */

@@ -1,0 +1,76 @@
+@layer components {
+  .app-container {
+    width: 100%;
+    max-width: var(--container-max);
+    margin: 0 auto;
+    padding: var(--container-padding-sm);
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-bg);
+    scroll-behavior: smooth;
+  }
+
+  .testimonial-gradient {
+    background: linear-gradient(
+      to bottom,
+      #080808 0%,
+      #151515 15%,
+      #252525 30%,
+      #303030 45%,
+      #343434 50%,
+      #303030 55%,
+      #252525 70%,
+      #151515 85%,
+      #080808 100%
+    );
+  }
+
+  .gradient-border {
+    background: linear-gradient(your-card-bg) padding-box,
+      linear-gradient(to top right, #a3a3a3, #404040, #171717) border-box;
+    border: 2px solid transparent;
+  }
+
+  .card {
+    @apply rounded-lg shadow-sm p-6;
+    background-color: var(--color-bg-muted);
+    color: var(--color-fg);
+  }
+
+  .btn-primary {
+    @apply px-4 py-2 rounded-md font-medium transition-colors duration-150;
+    background-color: var(--color-primary);
+    color: var(--color-bg);
+  }
+
+  .btn-primary:hover {
+    background-color: var(--color-primary-hover);
+  }
+
+  .bg-solid-dark {
+    background: #111;
+    border: 1px solid #333;
+  }
+
+  .bg-solid-darker {
+    background: #0a0a0a;
+    border: 1px solid #222;
+  }
+
+  
+
+  @media (min-width: 768px) {
+    .app-container {
+      padding-left: var(--container-padding-md);
+      padding-right: var(--container-padding-md);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .app-container {
+      padding-left: var(--container-padding-lg);
+      padding-right: var(--container-padding-lg);
+    }
+  }
+}

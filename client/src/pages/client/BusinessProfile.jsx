@@ -75,7 +75,9 @@ const ProfileHeader = React.memo(function ProfileHeader({
         <div className="absolute top-24 right-16 w-96 h-96 bg-slate-200/20 rounded-full blur-3xl" />
         <div className="absolute -bottom-36 left-12 w-80 h-80 bg-slate-200/18 rounded-full blur-3xl" />
       </div>
-      <div className="relative w-full h-[34vh] sm:h-[48vh] lg:h-[56vh] overflow-hidden">
+      {/* responsive and 16:9 ratio */}
+
+      <div className="relative w-full aspect-video overflow-hidden">
         <img
           src={coverPhoto}
           alt="Business Cover"
@@ -111,39 +113,6 @@ const ProfileHeader = React.memo(function ProfileHeader({
       </div>{" "}
       {/* end hero */}
     </header>
-  );
-});
-
-const StarRating = React.memo(function StarRating({
-  userRating,
-  hoverRating,
-  setHoverRating,
-  onRate,
-}) {
-  return (
-    <div className="w-full flex flex-col items-center gap-3 py-4">
-      <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/80 border border-gray-100 shadow-sm">
-        {[1, 2, 3, 4, 5].map((n) => {
-          const filled = hoverRating >= n || (!hoverRating && userRating >= n);
-          return (
-            <Star
-              key={n}
-              onMouseEnter={() => setHoverRating(n)}
-              onClick={() => onRate(n)}
-              className={`w-10 h-10 cursor-pointer transition-all duration-200 ${
-                filled
-                  ? "text-amber-400 fill-amber-400 scale-110 drop-shadow"
-                  : "text-gray-300"
-              } hover:scale-125`}
-              title={`${n} star${n > 1 ? "s" : ""}`}
-            />
-          );
-        })}
-      </div>
-      <p className="text-xs text-gray-600">
-        Tap a star to rate — low ratings will open a private feedback modal.
-      </p>
-    </div>
   );
 });
 
@@ -284,9 +253,9 @@ export default function BusinessProfile() {
         .filter(Boolean) ?? [];
 
     return {
-      name: userData?.businessName || userData?.fullName || "Business Name",
+      name: userData?.businessName || "",
       tagline: userData?.tagline || "",
-      industry: userData?.businessCategory || "General Business",
+      industry: userData?.businessCategory || "",
       detailedAbout: userData?.detailedAbout || "",
       coverPhoto:
         userData?.coverPhoto?.url ??
@@ -297,7 +266,6 @@ export default function BusinessProfile() {
       website:
         userData?.socialLinks?.find((l) => l?.platform === "Website")?.url ??
         "",
-      workingHours: userData?.workingHours ?? "Mon - Fri: 9:00 AM - 6:00 PM",
       contact: {
         phone:
           (userData?.phone?.dialCode && userData?.phone?.phoneNumber
@@ -347,20 +315,26 @@ export default function BusinessProfile() {
      Quick actions (themed)
      ------------------------*/
   const quickActions = useMemo(() => {
-    const waLink = buildWhatsAppLink(
-      businessProfile.whatsapp,
-      "Hi, I'm interested in your services."
-    );
-    return [
-      {
+    if (!businessProfile) return [];
+
+    const waLink = businessProfile.whatsapp
+      ? buildWhatsAppLink(
+          businessProfile.whatsapp,
+          "Hi, I'm interested in your services."
+        )
+      : null;
+
+    const actions = [
+      businessProfile?.contact?.phone && {
         key: "call",
         icon: Phone,
         label: "Call Us",
-        subtitle: businessProfile.contact.phone || "",
-        href: `tel:${businessProfile.contact.phone || ""}`,
+        subtitle: businessProfile.contact.phone,
+        href: `tel:${businessProfile.contact.phone}`,
         eventType: "contact_call",
       },
-      {
+
+      businessProfile?.whatsapp && {
         key: "whatsapp",
         icon: MessageCircle,
         label: "Message Us",
@@ -368,23 +342,28 @@ export default function BusinessProfile() {
         href: waLink,
         eventType: "contact_whatsapp",
       },
-      {
+
+      businessProfile?.contact?.email && {
         key: "email",
         icon: Mail,
         label: "Email",
-        subtitle: businessProfile.contact.email || "",
-        href: `mailto:${businessProfile.contact.email || ""}`,
+        subtitle: businessProfile.contact.email,
+        href: `mailto:${businessProfile.contact.email}`,
         eventType: "contact_email",
       },
-      {
+
+      businessProfile?.location && {
         key: "location",
         icon: MapPin,
         label: "Location",
         subtitle: "View on Maps",
-        href: businessProfile.location || "",
+        href: businessProfile.location,
         eventType: "contact_other",
       },
     ];
+
+    // ❗ Remove all `false` or `null` values
+    return actions.filter(Boolean);
   }, [businessProfile]);
 
   const handleContactClick = useCallback(
@@ -401,7 +380,7 @@ export default function BusinessProfile() {
   const handleSocialClick = useCallback(
     (social) => {
       console.log(social);
-      
+
       const platformKey = normalizePlatformKey(social.label);
       const eventType = `social_${platformKey}`;
       trackEvent(eventType, { platform: social.label, href: social.link });
@@ -555,34 +534,37 @@ export default function BusinessProfile() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div className="space-y-8 sm:space-y-10">
           {/* Socials */}
-          <section className="animate-slideUp">
-            <h3 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
-              <Users className="w-5 h-5 text-slate-700" />
-              Connect with Us
-            </h3>
-            <div className="flex flex-wrap gap-3">
-              {businessProfile.socials.map((social, idx) => {
-                const Icon = social.icon;
-                return (
-                  <a
-                    key={idx}
-                    href={
-                      social.link.startsWith("http")
-                        ? social.link
-                        : `https://${social.link}`
-                    }
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => handleSocialClick(social)}
-                    className="p-3 rounded-xl border border-slate-200 bg-white/60 backdrop-blur-sm hover:scale-105 transition-transform duration-200 shadow-sm"
-                    title={`Go to ${social.label}`}
-                  >
-                    <Icon className="w-5 h-5 text-slate-700" />
-                  </a>
-                );
-              })}
-            </div>
-          </section>
+
+          {businessProfile.socials?.length > 0 ? (
+            <section className="animate-slideUp">
+              <h3 className="text-xl font-bold text-slate-900 mb-3 flex items-center gap-2">
+                <Users className="w-5 h-5 text-slate-700" />
+                Connect with Us
+              </h3>
+              <div className="flex flex-wrap gap-3">
+                {businessProfile.socials.map((social, idx) => {
+                  const Icon = social.icon;
+                  return (
+                    <a
+                      key={idx}
+                      href={
+                        social.link.startsWith("http")
+                          ? social.link
+                          : `https://${social.link}`
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => handleSocialClick(social)}
+                      className="p-3 rounded-xl border border-slate-200 bg-white/60 backdrop-blur-sm hover:scale-105 transition-transform duration-200 shadow-sm"
+                      title={`Go to ${social.label}`}
+                    >
+                      <Icon className="w-5 h-5 text-slate-700" />
+                    </a>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
 
           {/* Quick Actions */}
           <section className="animate-slideUp">
@@ -638,42 +620,44 @@ export default function BusinessProfile() {
               </section>
 
               {/* Services */}
-              <section className="animate-slideUp">
-                <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-                  <Briefcase className="w-5 h-5 text-slate-700" />
-                  {businessProfile.servicesHeading}
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {servicesWithWhatsApp.map((service, idx) => (
-                    <div
-                      key={idx}
-                      className="p-5 rounded-2xl border border-slate-200 bg-white/60 backdrop-blur-sm hover:shadow-lg transition-all duration-300"
-                    >
-                      <h3 className="text-base font-bold text-slate-900 mb-2">
-                        {service.title || service.name}
-                      </h3>
-                      <p className="text-sm text-slate-600 mb-4">
-                        {service.description || service.desc}
-                      </p>
-                      <a
-                        href={service.waHref}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={() =>
-                          trackEvent("service_inquiry", {
-                            service: service.title || service.name,
-                            href: service.waHref,
-                          })
-                        }
-                        className="inline-flex items-center text-sm font-semibold text-slate-800 hover:gap-2 transition-all duration-200"
+              {businessProfile.services?.length > 0 ? (
+                <section className="animate-slideUp">
+                  <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <Briefcase className="w-5 h-5 text-slate-700" />
+                    {businessProfile.servicesHeading}
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {servicesWithWhatsApp.map((service, idx) => (
+                      <div
+                        key={idx}
+                        className="p-5 rounded-2xl border border-slate-200 bg-white/60 backdrop-blur-sm hover:shadow-lg transition-all duration-300"
                       >
-                        Query on WhatsApp
-                        <ChevronRight className="w-4 h-4 ml-1" />
-                      </a>
-                    </div>
-                  ))}
-                </div>
-              </section>
+                        <h3 className="text-base font-bold text-slate-900 mb-2">
+                          {service.title || service.name}
+                        </h3>
+                        <p className="text-sm text-slate-600 mb-4">
+                          {service.description || service.desc}
+                        </p>
+                        <a
+                          href={service.waHref}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() =>
+                            trackEvent("service_inquiry", {
+                              service: service.title || service.name,
+                              href: service.waHref,
+                            })
+                          }
+                          className="inline-flex items-center text-sm font-semibold text-slate-800 hover:gap-2 transition-all duration-200"
+                        >
+                          Query on WhatsApp
+                          <ChevronRight className="w-4 h-4 ml-1" />
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ) : null}
 
               {/* YouTube / Showcase */}
               {businessProfile.youtubeVideoUrl && (
@@ -691,27 +675,6 @@ export default function BusinessProfile() {
                 </section>
               )}
             </div>
-
-            {/* Right column: Contact details, hours, small CTA */}
-            <aside className="space-y-6">
-              <div className="p-5 rounded-2xl border border-slate-200 bg-gradient-to-br from-white/60 to-slate-50/60 backdrop-blur-sm shadow-md">
-                <h4 className="text-sm font-bold text-slate-900 mb-3">
-                  Get In Touch
-                </h4>
-                <a
-                  href={buildWhatsAppLink(
-                    businessProfile.whatsapp,
-                    "Hi, I'm interested in your services."
-                  )}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => trackEvent("cta_whatsapp")}
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-800 text-white font-semibold text-sm hover:bg-slate-900 transition-all"
-                >
-                  Message on WhatsApp
-                </a>
-              </div>
-            </aside>
           </div>
         </div>
       </main>

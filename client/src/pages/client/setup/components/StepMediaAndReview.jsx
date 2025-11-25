@@ -5,9 +5,23 @@ import PhotoUpload from "../../../../components/inputs/PhotoUpload";
 import { useWatch } from "react-hook-form";
 
 // --- Step 3: Media & Reviews ---
-const StepMediaAndReview = ({ control }) => {
+const StepMediaAndReview = ({ control, userType }) => {
+  const indiUser = userType === "individual";
+  const businessUser = userType === "business";
   return (
     <>
+      {/* add a field for profile photo if indi */}
+      {indiUser && (
+        <PhotoUpload
+          name="profilePhoto" // This registers the field with RHF
+          label="Profile Photo"
+          control={control}
+          aspectRatio={"square"}
+          maxFileSize={5 * 1024 * 1024}
+          rules={{ required: "A profile photo is required." }}
+        />
+      )}
+
       <PhotoUpload
         name="coverPhoto" // This registers the field with RHF
         label="Cover Photo"
@@ -23,20 +37,22 @@ const StepMediaAndReview = ({ control }) => {
         control={control} // Added control prop
         placeholder="e.g., jndWxpCzO5g"
       />
-      <Input
-        name="googleReviewLink"
-        label="Public Review Link (Optional)"
-        icon={Star}
-        control={control} // Added control prop
-        placeholder="e.g., https://g.page/r/..."
-        // rules with proper regex pattern to look like a proper link
-        rules={{
-          pattern: {
-            value: /^(ftp|http|https):\/\/[^ "]+$/,
-            message: "Please enter a valid URL",
-          },
-        }}
-      />
+      {businessUser && (
+        <Input
+          name="googleReviewLink"
+          label="Public Review Link (Optional)"
+          icon={Star}
+          control={control} // Added control prop
+          placeholder="e.g., https://g.page/r/..."
+          // rules with proper regex pattern to look like a proper link
+          rules={{
+            pattern: {
+              value: /^(ftp|http|https):\/\/[^ "]+$/,
+              message: "Please enter a valid URL",
+            },
+          }}
+        />
+      )}
     </>
   );
 };

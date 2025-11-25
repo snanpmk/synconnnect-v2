@@ -126,8 +126,6 @@ const PhotoUpload = ({
   const [previewModal, setPreviewModal] = useState(null);
   const [selectedType, setSelectedType] = useState(aspectRatio);
 
-  const coverImage = useWatch({ name, control });
-
   /* ------------ Open Cropper with uploaded file ------------ */
   const openCropper = (file) => {
     const url = URL.createObjectURL(file);

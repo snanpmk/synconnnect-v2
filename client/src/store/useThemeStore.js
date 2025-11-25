@@ -6,7 +6,7 @@ import { themeConfigs } from "../constants/themeConfigs";
 export const useThemeStore = create(
   persist(
     (set) => ({
-      currentTheme: "lemonLime",
+      currentTheme: "oceanBlue",
       themeConfigs,
       setCurrentTheme: (themeKey) =>
         set((state) => ({

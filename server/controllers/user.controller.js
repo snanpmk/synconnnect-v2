@@ -80,7 +80,7 @@ export const updateUserSetup = async (req, res) => {
 
     // ✔ Whitelist allowed fields to prevent unwanted updates
     const allowedFields = [
-      "name",
+      "fullName",
       "tagline",
       "detailedAbout",
       "phone",
@@ -92,10 +92,13 @@ export const updateUserSetup = async (req, res) => {
       "businessName",
       "businessCategory",
       "coverPhoto",
+      "profilePhoto",
       "servicesHeading",
       "services",
       "youtubeVideoUrl",
       "googleReviewLink",
+      "designation",
+      "companyName",
     ];
 
     const safeUpdate = {};

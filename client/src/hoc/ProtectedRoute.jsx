@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { getAccessTokenFromRefresh } from "../pages/auth/utils/getAccessTokenFromRefresh";
 import useAuthStore from "../store/useAuthStore";
+import { getUserIdFromToken } from "../utils/getUserIdFromToken";
 
 const ProtectedRoute = ({ children }) => {
   const accessToken = useAuthStore((state) => state.accessToken);
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
+  const setUserId = useAuthStore((state) => state.setUserId);
 
   const [isLoading, setIsLoading] = useState(true);
   const isLoggedIn = !!accessToken;
@@ -17,6 +19,13 @@ const ProtectedRoute = ({ children }) => {
           const newToken = await getAccessTokenFromRefresh();
           if (newToken) {
             setAccessToken(newToken);
+            // set user id in state
+            console.log(newToken);
+
+            const userId = getUserIdFromToken(newToken);
+            console.log(userId);
+            
+            setUserId(userId);
           }
         } catch (error) {
           console.error("Token refresh failed:", error);

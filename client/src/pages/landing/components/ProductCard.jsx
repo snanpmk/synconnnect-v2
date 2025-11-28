@@ -46,7 +46,7 @@ const productsData = [
 
 // Reusable Product Card Component
 const ProductCard = ({ product }) => {
-  const phoneNumber = "918920797587";
+  const phoneNumber = "918921797587";
   const prefilledText = encodeURIComponent(
     `Hi, I am interested in the ${product.name}. Please send me more details about it.`
   );

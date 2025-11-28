@@ -9,6 +9,7 @@ const allowedOrigins = [
   "https://synconnect.in", // always allow prod
   "https://www.synconnect.in",
   "http://192.168.0.130:5173",
+  "http://172.20.10.5:5173",
 ];
 
 const corsOptions = {

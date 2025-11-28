@@ -153,30 +153,44 @@ export default function MinimalProfile() {
   };
 
   const saveContact = () => {
-    trackEvent(EVENT_TYPES.SAVE_CONTACT);
-
-    const name = profile.name || "Contact";
+    const name = profile?.name?.trim() || "Contact";
     const tel = waNumber(user.phone?.dialCode, user.phone?.phoneNumber);
+    const email = user?.email || "";
+    const title = profile?.designation || "";
+    const company = profile?.company || "";
+    const photo = profile?.photo || "";
 
-    const vcf = `BEGIN:VCARD
-      VERSION:3.0
-      FN:${name}
-      ORG:${name}
-      TITLE:${profile.designation || ""}
-      TEL:${tel}
-      EMAIL:${user.email || ""}
-      PHOTO;VALUE=URI:${profile.photo || ""}
-      END:VCARD`;
+    // Build vCard (no spaces, clean formatting)
+    const vcfLines = [
+      "BEGIN:VCARD",
+      "VERSION:3.0",
+      `FN:${name}`,
+      company ? `ORG:${company}` : `ORG:${name}`,
+      title ? `TITLE:${title}` : "",
+      `TEL;TYPE=CELL:${tel}`,
+      email ? `EMAIL;TYPE=WORK:${email}` : "",
+      photo ? `PHOTO;VALUE=URI:${photo}` : "",
+      "END:VCARD",
+    ];
 
-    const file = new Blob([vcf], { type: "text/vcard" });
+    const vcf = vcfLines.filter(Boolean).join("\n");
+
+    // Correct MIME type for production
+    const file = new Blob([vcf], { type: "text/x-vcard" });
     const url = URL.createObjectURL(file);
 
     const a = document.createElement("a");
     a.href = url;
     a.download = `${name}.vcf`;
+
+    document.body.appendChild(a);
     a.click();
+    a.remove();
 
     URL.revokeObjectURL(url);
+
+    // analytics AFTER click so browser doesn't block download
+    trackEvent(EVENT_TYPES.SAVE_CONTACT);
   };
 
   if (isLoading)

@@ -300,30 +300,26 @@ const StickyButtons = ({ saveContact, open, theme }) => (
 /* ---------------------------------------------------
    SOCIAL LINKS
 ---------------------------------------------------- */
-const SocialLinks = ({ socials, theme, trackEvent }) =>
-  socials.length > 0 ? (
+const SocialLinks = ({ socials = [], theme, trackEvent }) => {
+  if (!socials.length) return null;
+
+  return (
     <div
       className={`flex items-center flex-wrap gap-4 px-4 m-4 border-t pt-4 ${theme.cardBorder}`}
     >
       <span className={`text-sm ${theme.textSecondary}`}>Connect:</span>
 
-      {socials.map((s, i) => {
-        const Icon = s.icon;
-        console.log(s);
-
+      {socials.map(({ icon: Icon, url, platform }) => {
+        const safeURL = url.startsWith("http") ? url : `https://${url}`;
         return (
           <button
-            key={i}
-            onClick={() => {
-              trackEvent(EVENT_TYPES.SOCIAL(s.platform?.toLowerCase()), {
-                href: s.url,
-                platform: s?.platform,
-              });
-              window.open(
-                s.url.startsWith("http") ? s.url : `https://${s.url}`,
-                "_blank"
-              );
-            }}
+            key={platform}
+            onClick={() =>
+              trackEvent(EVENT_TYPES.SOCIAL(platform.toLowerCase()), {
+                href: url,
+                platform,
+              }) || window.open(safeURL, "_blank")
+            }
             className="p-2 rounded-full hover:scale-110 transition"
           >
             <Icon className={`${theme.accent} w-6 h-6`} />
@@ -331,7 +327,8 @@ const SocialLinks = ({ socials, theme, trackEvent }) =>
         );
       })}
     </div>
-  ) : null;
+  );
+};
 
 /* ---------------------------------------------------
    MAIN CONTENT
@@ -456,7 +453,7 @@ const QuickActions = ({ actions, theme, trackEvent }) => (
    CONNECT MODAL
 ---------------------------------------------------- */
 const ConnectModal = ({ close, control, submit, theme, isSubmitting }) => (
-  <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-5 z-50">
+  <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-3 z-50">
     <div
       className={`w-full max-w-md rounded-xl overflow-hidden ${theme.cardBg} ${theme.cardBorder} ${theme.shadow}`}
     >

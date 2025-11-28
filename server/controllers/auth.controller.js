@@ -78,6 +78,13 @@ export const googleAuthController = async (req, res) => {
 
     console.log(refreshToken);
 
+    res.clearCookie("refresh_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      path: "/",
+    });
+
     // 5️⃣ Set refresh token in cookie
     res.cookie("refresh_token", refreshToken, {
       httpOnly: true,

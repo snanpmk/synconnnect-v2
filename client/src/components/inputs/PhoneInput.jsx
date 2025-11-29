@@ -39,12 +39,13 @@ const PhoneInputField = ({
           <div className="mb-4">
             <label
               htmlFor={name}
-              className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2"
+              className=" text-sm font-semibold text-gray-700 mb-1  items-center gap-2"
             >
               {label}
               {rules?.required && <span className="text-red-500">*</span>}
             </label>
 
+            {/* This container must have w-full to match the width of the Input component */}
             <div
               className={`flex items-center w-full bg-white rounded-xl border transition-all duration-200 ${
                 error
@@ -66,8 +67,9 @@ const PhoneInputField = ({
                     dialCode: selected.dialCode,
                   });
                 }}
+                // FIX: Setting width back to w-[100px]. This is often the tightest width for flags + dial code.
                 className={`
-                  px-3 py-3 text-sm w-[120px] bg-transparent border-r border-gray-200 
+                  px-3 py-3 text-sm w-[90px] bg-transparent border-r border-gray-200 
                   focus:outline-none cursor-pointer rounded-l-xl
                   ${
                     disabled
@@ -83,15 +85,6 @@ const PhoneInputField = ({
                 ))}
               </select>
 
-              {/* Dial Code */}
-              {/* <span
-                className={`px-2 text-gray-600 text-sm ${
-                  disabled ? "text-gray-400" : ""
-                }`}
-              >
-                {selectedCountry.dialCode}
-              </span> */}
-
               {/* Phone Number Input */}
               <input
                 type="tel"
@@ -101,8 +94,9 @@ const PhoneInputField = ({
                 onChange={(e) =>
                   onChange({ ...value, phoneNumber: e.target.value })
                 }
+                // flex-1 ensures this input takes up all remaining space.
                 className={`
-                  flex-1 px-3 py-3 text-sm rounded-r-xl bg-transparent
+                  w-full px-3 py-3 text-sm rounded-r-xl bg-transparent
                   focus:outline-none placeholder-gray-400 
                   ${disabled ? "bg-gray-100 cursor-not-allowed" : "bg-white"}
                 `}

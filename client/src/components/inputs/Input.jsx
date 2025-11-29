@@ -22,7 +22,13 @@ const Input = ({
       control={control}
       rules={rules}
       render={({ field, fieldState: { error } }) => {
-        const baseClasses = `w-full p-3 border-gray-200 border rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-primary focus:border-primary transition-all text-sm shadow-sm`;
+        // FIX: Updated styling to match PhoneInputField and form screenshot
+        const baseClasses = `
+          w-full p-3 bg-white text-gray-900 text-sm shadow-sm transition-all
+          border border-gray-300 hover:border-gray-400 
+          focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 
+          rounded-xl 
+        `;
         const errorClasses = error ? "border-red-500" : "";
         const finalInputClasses = `${baseClasses} ${errorClasses} ${inputClassName}`;
 

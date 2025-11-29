@@ -17,6 +17,7 @@ import {
   Share2,
   Briefcase,
   Users,
+  X,
 } from "lucide-react";
 import { useThemeStore } from "../../store/useThemeStore";
 import useGetData from "../../api/useGetData";
@@ -170,7 +171,7 @@ export default function MinimalProfile() {
   const saveContact = () => {
     trackEvent(EVENT_TYPES.SAVE_CONTACT);
 
-    const name = profile?.name?.trim() || "Contact";
+    const name = profile?.fullname?.trim() || "Contact";
     const tel = waNumber(user.phone?.dialCode, user.phone?.phoneNumber);
     const email = user?.email || "";
     const title = profile?.designation || "";
@@ -223,7 +224,7 @@ export default function MinimalProfile() {
   return (
     // Clean, high-contrast background based on the new design's gray-100/white theme
     <div className="min-h-screen bg-gray-100 pb-24 md:pb-8">
-      <div className="max-w-6xl mx-auto px-2 py-3 md:py-10">
+      <div className="max-w-6xl mx-auto px-3 py-3 md:py-10">
         <ProfileCardMinimal
           profile={profile}
           socials={socials}
@@ -260,14 +261,15 @@ export default function MinimalProfile() {
           trackEvent={trackEvent}
         />
 
-        {open && (
+        {
           <ConnectModal
             close={() => setOpen(false)}
             control={control}
+            open={open}
             submit={handleSubmit(submit)}
             isSubmitting={formState.isSubmitting}
           />
-        )}
+        }
       </div>
     </div>
   );
@@ -280,7 +282,7 @@ const SocialIconsRow = ({ socials, trackEvent }) => {
   if (!socials.length) return null;
 
   return (
-    <div className="flex items-center justify-center gap-2 mt-4 flex-wrap">
+    <div className="flex items-center justify-start gap-2 my-4 flex-wrap">
       {socials.map(({ icon: Icon, url, platform, color: brandColorClass }) => {
         const safeURL = url.startsWith("http") ? url : `https://${url}`;
         return (
@@ -293,7 +295,7 @@ const SocialIconsRow = ({ socials, trackEvent }) => {
               });
               window.open(safeURL, "_blank");
             }}
-            className="group p-2 rounded-full bg-white hover:bg-gray-100 border border-transparent hover:border-gray-300 transition-all shadow-sm active:scale-95 transform"
+            className="group p-2 rounded-full bg-white hover:bg-gray-100 border border-transparent hover:border-gray-300 transition-all shadow-lg active:scale-95 transform"
             title={platform}
           >
             <Icon
@@ -324,7 +326,7 @@ const ProfileCardMinimal = ({
       {profile.cover ? (
         <img
           src={profile.cover}
-          className="w-full h-full object-cover opacity-90"
+          className="w-full h-full object-cover "
           alt="Cover"
         />
       ) : (
@@ -340,48 +342,51 @@ const ProfileCardMinimal = ({
         className="absolute top-4 right-4 p-2 rounded-lg bg-white/20 backdrop-blur-sm shadow-md text-white hover:bg-white/40 transition active:scale-95"
         title="Share Profile"
       >
-        <Share2 size={20} />
+        <Share2 size={23} />
       </button>
 
       {/* Bookmark Icon - Top left */}
+      {/* pulse animate the save button */}
       <button
         onClick={saveContact} // <-- ADD THIS
-        className="absolute top-4 left-4 p-2 rounded-lg bg-white/20 backdrop-blur-sm shadow-md hover:bg-white/40 transition active:scale-95 transform"
+        // className="absolute top-4 left-4 p-2 rounded-lg bg-white/20 backdrop-blur-sm shadow-md hover:bg-white/40 transition active:scale-95 transform
+
+        // "
+        className="absolute top-4 left-4 p-2 rounded-lg bg-white/40 backdrop-blur-sm shadow-md hover:bg-white/40 transition active:scale-45 "
         title="Save Contact (VCF Download)" // <-- ADD/UPDATE TITLE
       >
-        <UserPlus size={20} className="text-white" />
+        <UserPlus size={23} className="text-white" />
       </button>
     </div>
 
     {/* Profile info */}
     <div className="relative px-6 md:px-8 pb-6">
-      <div className="flex flex-col items-center text-center -mt-16">
+      <div className="flex flex-col items-start text-center -mt-16">
         {/* Avatar */}
-        <div className="relative">
+        <div className="relative animate-float-subtle">
           <img
             src={profile.photo}
-            className="w-28 h-28 md:w-32 md:h-32 rounded-full object-cover border-4 border-white shadow-xl ring-2 ring-gray-900/50"
+            className="w-28 h-28 md:w-32 md:h-32 rounded-full object-cover  shadow-xl "
             alt={profile.name}
           />
         </div>
-
         {/* Name and Designation */}
         <div className="pt-4">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-0">
+          <h1 className="text-2xl text-start md:text-3xl font-bold text-gray-900 mb-0">
             {profile.name}
           </h1>
-          <p className="text-lg text-gray-800 font-medium mb-2">
-            {profile.designation}
+          <p className="text-lg text-start font-medium mb-2">
+            <span className="text-slate-600">{profile.designation}</span>
+            <span className="text-black px-2">@</span>
+            <span className="text-gray-800">{profile.company}</span>
           </p>
         </div>
-
         {/* Tagline */}
         {profile.tagline && (
           <p className="text-sm text-gray-600 leading-relaxed italic max-w-sm mb-4">
             "{profile.tagline}"
           </p>
         )}
-
         {/* Social Icons */}
         <div className="mb-4">
           <SocialIconsRow socials={socials} trackEvent={trackEvent} />
@@ -400,9 +405,15 @@ const ProfileCardMinimal = ({
         </button> */}
 
         {/* MAIN CTA: Get In Touch */}
+        {/* tailwind sacale animate for get in touch butotn */}
         <button
           onClick={openConnect}
-          className="flex-1 py-3.5 rounded-full bg-gray-900 text-white font-bold text-lg hover:bg-gray-800 shadow-xl shadow-gray-500/50 transition-all active:scale-[0.98] transform"
+          // className="flex-1 py-3.5 rounded-full bg-gray-900 text-white font-bold text-lg
+          //    hover:bg-gray-800 shadow-xl shadow-gray-500/50 transition-all
+          //    active:scale-[0.98] transform "
+          className="flex-1 py-3.5 rounded-full bg-gray-900 text-white font-bold text-lg
+             hover:bg-gray-800 shadow-xl shadow-gray-500/50 transition-all
+             active:scale-[0.98] transform "
         >
           Get In Touch
         </button>
@@ -586,17 +597,22 @@ const VideoSection = ({ youtubeId, trackEvent }) => (
 /* ---------------------------------------------------
    CONNECT MODAL (Updated with Tailwind Animation)
 ---------------------------------------------------- */
-const ConnectModal = ({ close, control, submit, isSubmitting }) => (
+const ConnectModal = ({ close, open, control, submit, isSubmitting }) => (
   <div
-    // Added classes for fade-in and duration
-    className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-300"
+    // Outer Container: Controls backdrop, visibility, and fade-in keyframe animation
+    // Keyframe Animation: 'backdrop-in' (fades from 0% to 100% opacity over 300ms)
+    className={`${
+      open ? "block" : "hidden"
+    } fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 
+       ${open ? "animate-backdrop-in" : ""} duration-300`}
   >
     <div
-      className="w-full max-w-md bg-white rounded-xl overflow-hidden shadow-2xl border border-gray-200 
-      // Added classes for zoom-in effect (95% initial scale)
-      animate-in zoom-in-95 duration-300"
+      // Inner Container: Controls content styling and zoom-in keyframe animation
+      // Keyframe Animation: 'modal-in' (fades from 0% opacity and scales from 0.95 to 1 over 300ms)
+      className="w-full max-w-md bg-white rounded-xl overflow-hidden shadow-2xl  
+      animate-modal-in"
     >
-      {/* Header color changed to dark gray */}
+      {/* Header */}
       <div className="bg-gray-900 px-6 py-5">
         <h3 className="text-2xl font-bold text-white">Let's Connect! 🤝</h3>
         <p className="text-gray-300 text-base mt-1">
@@ -604,6 +620,7 @@ const ConnectModal = ({ close, control, submit, isSubmitting }) => (
         </p>
       </div>
 
+      {/* Form Content */}
       <form onSubmit={submit} className="p-6 space-y-6">
         <Input
           name="leadName"
@@ -625,27 +642,40 @@ const ConnectModal = ({ close, control, submit, isSubmitting }) => (
 
         <PhoneInputField
           name="contactNumber"
-          label="Contact Number (for lead capture)"
+          label="Contact Number"
           control={control}
           rules={{ required: "Required" }}
           inputClass="bg-white border-gray-300 focus:border-gray-900 focus:ring-gray-900 shadow-sm"
         />
 
         <div className="flex gap-4 pt-2">
+          {/* Cancel Button */}
           <button
             type="button"
             onClick={close}
-            className="flex-1 py-3 rounded-lg border-2 border-gray-300 text-gray-700 font-medium hover:bg-gray-100 transition shadow-sm"
+            className="flex-1 py-3 rounded-lg border-2 border-gray-300 text-gray-700 font-medium 
+               hover:bg-gray-100 transition shadow-sm flex items-center justify-center gap-2"
           >
+            <X size={20} /> {/* Cancel icon */}
             Cancel
           </button>
 
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex-1 py-3 rounded-lg bg-gray-900 text-white font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-gray-500/50 transition active:scale-95 transform"
+            className="flex-1 py-3 rounded-lg bg-gray-900 text-white font-medium hover:bg-gray-800 
+               disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-gray-500/50 
+               transition active:scale-95 transform flex items-center justify-center gap-2"
           >
-            {isSubmitting ? "Sending..." : "Send & Open WhatsApp"}
+            {isSubmitting ? (
+              "Sending..."
+            ) : (
+              <>
+                <Send size={20} /> {/* Send icon */}
+                Send
+              </>
+            )}
           </button>
         </div>
       </form>

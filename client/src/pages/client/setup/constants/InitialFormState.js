@@ -1,9 +1,8 @@
 // write a js fn that fetch country by location and set default country code
 
-
 export const defaultPhoneState = {
-  dialCode: "+91",
-  countryCode: "IN",
+  dialCode: "+971",
+  countryCode: "AE",
   phoneNumber: "",
 };
 

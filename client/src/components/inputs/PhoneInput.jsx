@@ -69,7 +69,7 @@ const PhoneInputField = ({
                 }}
                 // FIX: Setting width back to w-[100px]. This is often the tightest width for flags + dial code.
                 className={`
-                  px-3 py-3 text-sm w-[90px] bg-transparent border-r border-gray-200 
+                  px-3 py-3 text-sm w-[120px] bg-transparent border-r border-gray-200 
                   focus:outline-none cursor-pointer rounded-l-xl
                   ${
                     disabled

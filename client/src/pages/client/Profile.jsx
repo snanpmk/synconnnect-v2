@@ -395,22 +395,8 @@ const ProfileCardMinimal = ({
 
       {/* ACTION BUTTONS: Save Contact and Get In Touch */}
       <div className="flex gap-4 items-stretch">
-        {/* Secondary Action: Save Contact */}
-        {/* <button
-          onClick={saveContact}
-          className="flex items-center justify-center p-3 rounded-2xl border-2 border-gray-900 text-gray-900 font-semibold hover:bg-gray-100 transition active:scale-95 transform shadow-sm w-fit whitespace-nowrap"
-          title="Add to Contacts"
-        >
-          <UserPlus className="w-5 h-5" />
-        </button> */}
-
-        {/* MAIN CTA: Get In Touch */}
-        {/* tailwind sacale animate for get in touch butotn */}
         <button
           onClick={openConnect}
-          // className="flex-1 py-3.5 rounded-full bg-gray-900 text-white font-bold text-lg
-          //    hover:bg-gray-800 shadow-xl shadow-gray-500/50 transition-all
-          //    active:scale-[0.98] transform "
           className="flex-1 py-3.5 rounded-full bg-gray-900 text-white font-bold text-lg
              hover:bg-gray-800 shadow-xl shadow-gray-500/50 transition-all
              active:scale-[0.98] transform "
@@ -421,20 +407,6 @@ const ProfileCardMinimal = ({
     </div>
   </div>
 );
-
-// Helper component for the Stat Row - Not fully used here but kept for completeness
-// const StatItem = ({ icon: Icon, value, label }) => (
-//   <div className="flex flex-col items-center w-1/3">
-//     <div className="flex items-center gap-1">
-//       <Icon
-//         size={16}
-//         className={label === "Rating" ? "text-yellow-500" : "text-gray-700"}
-//       />
-//       <span className="text-base font-semibold text-gray-800">{value}</span>
-//     </div>
-//     <span className="text-xs text-gray-500 uppercase font-medium">{label}</span>
-//   </div>
-// );
 
 /* ---------------------------------------------------
     CONTENT GRID

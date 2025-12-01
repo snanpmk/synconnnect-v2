@@ -21,46 +21,13 @@ import useGetData from "../../api/useGetData";
 import usePostData from "../../api/usePostData";
 import Input from "../../components/inputs/Input";
 import { PLATFORM_ICONS } from "../../constants/socialIcons";
-
-/* ------------------------
-   Helpers (unchanged logic)
-   ------------------------*/
-const formatPhoneForWhatsApp = (raw) => {
-  if (!raw) return "";
-  if (typeof raw === "object") {
-    const dial = raw?.dialCode ?? "";
-    const num = raw?.phoneNumber ?? "";
-    return `${dial}${num}`.replace(/\D/g, "");
-  }
-  return String(raw).replace(/\D/g, "").replace(/^0+/, "");
-};
-
-const buildWhatsAppLink = (number, msg = "") => {
-  const n = formatPhoneForWhatsApp(number);
-  const encoded = encodeURIComponent(msg);
-  return n
-    ? `https://wa.me/${n}?text=${encoded}`
-    : `https://wa.me/?text=${encoded}`;
-};
-
-const normalizePlatformKey = (label) => {
-  console.log(label);
-
-  if (!label) return "other";
-  const l = label.toLowerCase();
-  if (l.includes("facebook")) return "facebook";
-  if (l.includes("instagram")) return "instagram";
-  if (l === "x" || l.includes("twitter")) return "twitter";
-  if (l.includes("linkedin")) return "linkedin";
-  if (l.includes("youtube")) return "youtube";
-  if (l.includes("tiktok")) return "tiktok";
-  if (l.includes("whatsapp")) return "whatsapp";
-  return "other";
-};
-
-/* ------------------------
-   Presentational (themed)
-   ------------------------*/
+import { EVENT_TYPES } from "../../constants/eventTypes";
+import { openSafe } from "./setup/utility/openSage";
+import useEventTracker from "../../hooks/useEventTracker";
+import QuickContacts from "../../components/QuickContacts";
+import AboutSectionCard from "../../components/AboutSectionCard";
+import ServicesSectionCard from "../../components/ServicesSectionCard";
+import { formatPhoneForWhatsApp } from "../../utils/formatPhoneForWhatsApp";
 
 const ProfileHeader = React.memo(function ProfileHeader({
   coverPhoto,
@@ -76,8 +43,11 @@ const ProfileHeader = React.memo(function ProfileHeader({
         <div className="absolute -bottom-36 left-12 w-80 h-80 bg-slate-200/18 rounded-full blur-3xl" />
       </div>
       {/* responsive and 16:9 ratio */}
-
-      <div className="relative w-full aspect-video overflow-hidden">
+      {/* give max height for the image */}
+      <div
+        className="relative w-full  h-[30vh] min-h-[200px] max-h-[400px] md:h-[40vh] lg:h-[50vh]
+       aspect-video overflow-hidden "
+      >
         <img
           src={coverPhoto}
           alt="Business Cover"
@@ -110,22 +80,14 @@ const ProfileHeader = React.memo(function ProfileHeader({
             </div>
           </div>
         </div>
-      </div>{" "}
+      </div>
       {/* end hero */}
     </header>
   );
 });
 
-/* ------------------------
-   Feedback Modal (themed)
-   ------------------------*/
-function FeedbackModalInner({
-  visible,
-  userRating,
-  onClose,
-  userId,
-  trackEvent,
-}) {
+// 2. FeedbackModal (renamed from FeedbackModalInner)
+function FeedbackModal({ visible, userRating, onClose, userId, trackEvent }) {
   const { control, handleSubmit, reset } = useForm({
     defaultValues: { feedback: "" },
   });
@@ -151,8 +113,7 @@ function FeedbackModalInner({
     });
   };
 
-  if (!visible) return null;
-  if (userRating >= 3 || userRating < 1) return null;
+  if (!visible || userRating < 1 || userRating >= 3) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
@@ -213,8 +174,177 @@ function FeedbackModalInner({
   );
 }
 
+// 3. SocialsSection
+function SocialsSection({ socials, trackEvent }) {
+  if (socials?.length === 0) return null;
+
+  return (
+    <section className="animate-slideUp bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+      <h3 className="text-xl font-bold text-slate-900 mb-3 flex items-center gap-2">
+        <Users className="w-5 h-5 text-slate-700" />
+        Connect with Us
+      </h3>
+      <div className="flex flex-wrap gap-3">
+        {socials.map(
+          ({ icon: Icon, url, platform, color: brandColorClass }) => {
+            const safeURL = url.startsWith("http") ? url : `https://${url}`;
+            return (
+              <button
+                key={platform}
+                onClick={() => {
+                  trackEvent(EVENT_TYPES.SOCIAL(platform.toLowerCase()), {
+                    href: url,
+                    platform,
+                  });
+                  openSafe(safeURL);
+                }}
+                className="group p-2 rounded-full bg-white hover:bg-gray-100 border border-transparent hover:border-gray-300 transition-all shadow-lg active:scale-95 transform"
+                title={platform}
+              >
+                <Icon
+                  className={`${brandColorClass} w-6 h-6 transition group-hover:opacity-80`}
+                />
+              </button>
+            );
+          }
+        )}
+      </div>
+    </section>
+  );
+}
+
+// 6. ServicesSection
+function ServicesSection({ services, servicesHeading, trackEvent }) {
+  if (services?.length === 0) return null;
+
+  return (
+    <section className="animate-slideUp">
+      <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+        <Briefcase className="w-5 h-5 text-slate-700" />
+        {servicesHeading}
+      </h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {services.map((service, idx) => (
+          <div
+            key={idx}
+            className="p-5 rounded-2xl border border-slate-200 bg-white/60 backdrop-blur-sm hover:shadow-lg transition-all duration-300"
+          >
+            <h3 className="text-base font-bold text-slate-900 mb-2">
+              {service.title || service.name}
+            </h3>
+            <p className="text-sm text-slate-600 mb-4">
+              {service.description || service.desc}
+            </p>
+            <a
+              href={service.waHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() =>
+                trackEvent("service_inquiry", {
+                  service: service.title || service.name,
+                  href: service.waHref,
+                })
+              }
+              className="inline-flex items-center text-sm font-semibold text-slate-800 hover:gap-2 transition-all duration-200"
+            >
+              Query on WhatsApp
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </a>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// 7. VideoShowcaseSection
+function VideoShowcaseSection({ youtubeVideoUrl }) {
+  if (!youtubeVideoUrl) return null;
+
+  return (
+    <section className="animate-slideUp">
+      <div className="aspect-video w-full overflow-hidden rounded-2xl shadow-xl border border-slate-200 bg-white/60">
+        <iframe
+          title="Showcase Video"
+          width="100%"
+          height="100%"
+          src={`https://www.youtube.com/embed/${youtubeVideoUrl}`}
+          allowFullScreen
+          className="w-full h-full"
+        />
+      </div>
+    </section>
+  );
+}
+
+// 8. RatingStrip (Sticky header component)
+function RatingStrip({
+  userRating,
+  hoverRating,
+  setHoverRating,
+  handleRatingClick,
+}) {
+  return (
+    <div className="sticky top-0 z-30 px-4 py-3 sm:py-4 bg-white/70 backdrop-blur-xl border-b border-slate-200 shadow-sm">
+      <div className="max-w-xl mx-auto w-full">
+        <div className="flex flex-col items-center gap-2">
+          {/* Star Selection (mobile optimized) */}
+          <div className="gold-border rounded-xl">
+            <div
+              className="flex items-center gap-1.5 bg-white rounded-xl px-3 py-3 shadow-md"
+              onMouseLeave={() => setHoverRating(0)}
+            >
+              {[1, 2, 3, 4, 5].map((star) => {
+                const filled =
+                  hoverRating >= star || (!hoverRating && userRating >= star);
+                return (
+                  <Star
+                    key={star}
+                    onMouseEnter={() => setHoverRating(star)}
+                    onClick={() => handleRatingClick(star)}
+                    className={`w-10 h-10 cursor-pointer transition-all duration-200 ${
+                      filled
+                        ? "text-amber-400 fill-amber-400 scale-110"
+                        : "text-gray-300"
+                    } hover:scale-125`}
+                  />
+                );
+              })}
+            </div>
+          </div>
+
+          <p className=" text-slate-600 mt-1">
+            {/* message to say what we mean by rating on basis of stars */}
+            {userRating === 0 && hoverRating === 0 && (
+              <span className="text-sm text-slate-600">
+                Rate your experience!{" "}
+                <Sparkles className="inline w-3 h-3 text-amber-500" /> Your
+                feedback helps us improve!
+              </span>
+            )}
+            {hoverRating > 0 && (
+              <span className="text-xs text-slate-600">
+                {hoverRating >= 3
+                  ? "Click to leave a public review on Google!"
+                  : "Click to provide private feedback."}
+              </span>
+            )}
+            {userRating > 0 && hoverRating === 0 && (
+              <span className="text-xs text-slate-600">
+                {userRating >= 3
+                  ? "Redirecting to Google Reviews..."
+                  : "Opening private feedback form..."}
+              </span>
+            )}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ------------------------
-   Main Component (themed)
+   Main Component (Themed)
    ------------------------*/
 export default function BusinessProfile() {
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
@@ -237,6 +367,12 @@ export default function BusinessProfile() {
 
   const userData = userDataResponse?.data ?? {};
 
+  const waNumber = (dial, num) =>
+    `${(dial || "").replace(/\D/g, "")}${(num || "").replace(/\D/g, "")}`;
+
+  const waLink = (dial, num, msg) =>
+    `https://wa.me/${waNumber(dial, num)}?text=${encodeURIComponent(msg)}`;
+
   const businessProfile = useMemo(() => {
     const socials =
       (userData?.socialLinks ?? [])
@@ -255,14 +391,11 @@ export default function BusinessProfile() {
     return {
       name: userData?.businessName || "",
       tagline: userData?.tagline || "",
-      industry: userData?.businessCategory || "",
       detailedAbout: userData?.detailedAbout || "",
       coverPhoto:
         userData?.coverPhoto?.url ??
         "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1600&q=80",
       googleReviewLink: userData?.googleReviewLink,
-      averageRating: userData?.averageRating ?? 4.8,
-      totalReviews: userData?.totalReviews ?? 145,
       website:
         userData?.socialLinks?.find((l) => l?.platform === "Website")?.url ??
         "",
@@ -272,7 +405,6 @@ export default function BusinessProfile() {
             ? `${userData?.phone?.dialCode} ${userData?.phone?.phoneNumber}`
             : userData?.phone?.phoneNumber) ?? "",
         email: userData?.email ?? "",
-        address: userData?.address ?? "Not Specified",
       },
       socials,
       services: userData?.services ?? [],
@@ -282,6 +414,17 @@ export default function BusinessProfile() {
       youtubeVideoUrl: userData?.youtubeVideoUrl ?? "",
     };
   }, [userData]);
+
+  const socials =
+    (userData.socialLinks || [])
+      .map((s) => {
+        const Icon = PLATFORM_ICONS[s.platform]?.icon;
+        const color = PLATFORM_ICONS[s.platform]?.color;
+        return Icon
+          ? { icon: Icon, url: s.url, platform: s.platform, color: color }
+          : null;
+      })
+      .filter(Boolean) || [];
 
   /* ------------------------
      event mutation + tracking
@@ -311,89 +454,51 @@ export default function BusinessProfile() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userDataResponse?.data?._id]);
 
-  /* ------------------------
-     Quick actions (themed)
-     ------------------------*/
-  const quickActions = useMemo(() => {
-    if (!businessProfile) return [];
-
-    const waLink = businessProfile.whatsapp
-      ? buildWhatsAppLink(
-          businessProfile.whatsapp,
-          "Hi, I'm interested in your services."
-        )
-      : null;
-
-    const actions = [
-      businessProfile?.contact?.phone && {
-        key: "call",
-        icon: Phone,
-        label: "Call Us",
-        subtitle: businessProfile.contact.phone,
-        href: `tel:${businessProfile.contact.phone}`,
-        eventType: "contact_call",
-      },
-
-      businessProfile?.whatsapp && {
-        key: "whatsapp",
-        icon: MessageCircle,
-        label: "Message Us",
-        subtitle: "24/7 Live Support",
-        href: waLink,
-        eventType: "contact_whatsapp",
-      },
-
-      businessProfile?.contact?.email && {
-        key: "email",
-        icon: Mail,
-        label: "Email",
-        subtitle: businessProfile.contact.email,
-        href: `mailto:${businessProfile.contact.email}`,
-        eventType: "contact_email",
-      },
-
-      businessProfile?.location && {
-        key: "location",
-        icon: MapPin,
-        label: "Location",
-        subtitle: "View on Maps",
-        href: businessProfile.location,
-        eventType: "contact_other",
-      },
-    ];
-
-    // ❗ Remove all `false` or `null` values
-    return actions.filter(Boolean);
-  }, [businessProfile]);
-
-  const handleContactClick = useCallback(
-    (action) => {
-      if (!action?.eventType) {
-        trackEvent("contact_other", { label: action?.label });
-        return;
-      }
-      trackEvent(action.eventType, { label: action.label, href: action.href });
+  const actions = [
+    {
+      icon: Phone,
+      label: "Call",
+      subtitle: `${userData.phone?.dialCode || ""} ${
+        userData.phone?.phoneNumber || ""
+      }`,
+      href: `tel:${userData.phone?.dialCode}${userData.phone?.phoneNumber}`,
+      event: EVENT_TYPES.CONTACT_CALL,
     },
-    [trackEvent]
-  );
-
-  const handleSocialClick = useCallback(
-    (social) => {
-      console.log(social);
-
-      const platformKey = normalizePlatformKey(social.label);
-      const eventType = `social_${platformKey}`;
-      trackEvent(eventType, { platform: social.label, href: social.link });
+    {
+      icon: MessageCircle,
+      label: "WhatsApp",
+      subtitle: `${userData.whatsapp?.dialCode || ""} ${
+        userData.whatsapp?.phoneNumber || ""
+      }`,
+      href: waLink(
+        userData.whatsapp?.dialCode,
+        userData.whatsapp?.phoneNumber,
+        "Hi, I saw your profile and wanted to connect."
+      ),
+      event: EVENT_TYPES.CONTACT_WHATSAPP,
     },
-    [trackEvent]
-  );
+    {
+      icon: Mail,
+      label: "Email",
+      subtitle: userData.email,
+      href: `mailto:${userData.email}`,
+      event: EVENT_TYPES.CONTACT_EMAIL,
+    },
+    {
+      icon: MapPin,
+      label: "Location",
+      subtitle: userData.location || "View location",
+      href: userData.location,
+      event: EVENT_TYPES.CONTACT_LOCATION,
+    },
+  ];
 
   /* ------------------------
      Native share (option A)
      ------------------------*/
   const onShare = useCallback(async () => {
     const shareData = {
-      title: businessProfile?.name || "Business Profile",
+      title: businessProfile?.fullName || "Business Profile",
       text: businessProfile?.tagline || "Check this out",
       url: window.location.href,
     };
@@ -415,9 +520,6 @@ export default function BusinessProfile() {
     }
   }, [businessProfile, trackEvent]);
 
-  /* ------------------------
-     Rating handler (unchanged)
-     ------------------------*/
   const handleRatingClick = useCallback(
     (rating) => {
       setUserRating(rating);
@@ -438,9 +540,6 @@ export default function BusinessProfile() {
     [trackEvent, businessProfile]
   );
 
-  /* ------------------------
-     Services -> WhatsApp links (unchanged)
-     ------------------------*/
   const servicesWithWhatsApp = useMemo(() => {
     const waNumber = formatPhoneForWhatsApp(businessProfile.whatsapp);
     return (businessProfile.services || []).map((service) => {
@@ -472,208 +571,38 @@ export default function BusinessProfile() {
         onShare={onShare}
       />
 
-      {/* Sticky rating strip */}
-      {/* Sticky rating bar (mobile-friendly) */}
-      <div className="sticky top-0 z-30 px-4 py-3 sm:py-4 bg-white/70 backdrop-blur-xl border-b border-slate-200 shadow-sm">
-        <div className="max-w-xl mx-auto w-full">
-          <div className="flex flex-col items-center gap-2">
-            {/* Star Selection (mobile optimized) */}
-            <div className="w-full flex justify-center">
-              <div
-                className="flex items-center gap-1.5 bg-white/90 border border-slate-200 rounded-xl px-3 py-2 shadow-md"
-                onMouseLeave={() => setHoverRating(0)}
-              >
-                {[1, 2, 3, 4, 5].map((star) => {
-                  const filled =
-                    hoverRating >= star || (!hoverRating && userRating >= star);
-                  return (
-                    <Star
-                      key={star}
-                      onMouseEnter={() => setHoverRating(star)}
-                      onClick={() => handleRatingClick(star)}
-                      className={`w-10 h-10 cursor-pointer transition-all duration-200 ${
-                        filled
-                          ? "text-amber-400 fill-amber-400 scale-110"
-                          : "text-gray-300"
-                      } hover:scale-125`}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-
-            <p className=" text-slate-600 mt-1">
-              {/* message to say what we mean by rating on basis of stars */}
-              {userRating === 0 && hoverRating === 0 && (
-                <span className="text-sm text-slate-600">
-                  Rate your experience!{" "}
-                  <Sparkles className="inline w-3 h-3 text-amber-500" /> Your
-                  feedback helps us improve!
-                </span>
-              )}
-              {hoverRating > 0 && (
-                <span className="text-xs text-slate-600">
-                  {hoverRating >= 3
-                    ? "Click to leave a public review on Google!"
-                    : "Click to provide private feedback."}
-                </span>
-              )}
-              {userRating > 0 && hoverRating === 0 && (
-                <span className="text-xs text-slate-600">
-                  {userRating >= 3
-                    ? "Redirecting to Google Reviews..."
-                    : "Opening private feedback form..."}
-                </span>
-              )}
-            </p>
-          </div>
-        </div>
-      </div>
+      <RatingStrip
+        userRating={userRating}
+        hoverRating={hoverRating}
+        setHoverRating={setHoverRating}
+        handleRatingClick={handleRatingClick}
+      />
 
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div className="space-y-8 sm:space-y-10">
-          {/* Socials */}
+          <SocialsSection socials={socials} trackEvent={trackEvent} />
 
-          {businessProfile.socials?.length > 0 ? (
-            <section className="animate-slideUp">
-              <h3 className="text-xl font-bold text-slate-900 mb-3 flex items-center gap-2">
-                <Users className="w-5 h-5 text-slate-700" />
-                Connect with Us
-              </h3>
-              <div className="flex flex-wrap gap-3">
-                {businessProfile.socials.map((social, idx) => {
-                  const Icon = social.icon;
-                  return (
-                    <a
-                      key={idx}
-                      href={
-                        social.link.startsWith("http")
-                          ? social.link
-                          : `https://${social.link}`
-                      }
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => handleSocialClick(social)}
-                      className="p-3 rounded-xl border border-slate-200 bg-white/60 backdrop-blur-sm hover:scale-105 transition-transform duration-200 shadow-sm"
-                      title={`Go to ${social.label}`}
-                    >
-                      <Icon className="w-5 h-5 text-slate-700" />
-                    </a>
-                  );
-                })}
-              </div>
-            </section>
-          ) : null}
-
-          {/* Quick Actions */}
-          <section className="animate-slideUp">
-            <h2 className="text-xl font-bold text-slate-900 mb-4">
-              Quick Contact
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {quickActions.map((action) => (
-                <a
-                  key={action.key}
-                  href={action.href || "#"}
-                  onClick={() => handleContactClick(action)}
-                  target={
-                    action.href?.startsWith("http") ||
-                    action.href?.startsWith("mailto")
-                      ? "_blank"
-                      : "_self"
-                  }
-                  rel="noreferrer"
-                  className="group p-4 rounded-2xl border border-slate-200 bg-white/70 backdrop-blur-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
-                >
-                  <action.icon className="w-6 h-6 text-slate-800 mb-3" />
-                  <div className="text-sm font-semibold text-slate-900">
-                    {action.label}
-                  </div>
-                  <div className="text-xs text-slate-600">
-                    {action.subtitle}
-                  </div>
-                </a>
-              ))}
-            </div>
-          </section>
+          <QuickContacts actions={actions} trackEvent={trackEvent} />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10">
             <div className="lg:col-span-2 space-y-8">
-              {/* About */}
-              <section className="animate-slideUp">
-                <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-                  <Building2 className="w-5 h-5 text-slate-700" />
-                  About {businessProfile.name}
-                </h2>
-                <div className="p-6 rounded-2xl border border-slate-200 bg-white/60 backdrop-blur-sm shadow-sm">
-                  <div className="prose max-w-none text-slate-700">
-                    {String(businessProfile.detailedAbout)
-                      .split("\n\n")
-                      .map((p, i) => (
-                        <p key={i} className="text-sm leading-relaxed mb-4">
-                          {p}
-                        </p>
-                      ))}
-                  </div>
-                </div>
-              </section>
-
-              {/* Services */}
-              {businessProfile.services?.length > 0 ? (
-                <section className="animate-slideUp">
-                  <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-                    <Briefcase className="w-5 h-5 text-slate-700" />
-                    {businessProfile.servicesHeading}
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {servicesWithWhatsApp.map((service, idx) => (
-                      <div
-                        key={idx}
-                        className="p-5 rounded-2xl border border-slate-200 bg-white/60 backdrop-blur-sm hover:shadow-lg transition-all duration-300"
-                      >
-                        <h3 className="text-base font-bold text-slate-900 mb-2">
-                          {service.title || service.name}
-                        </h3>
-                        <p className="text-sm text-slate-600 mb-4">
-                          {service.description || service.desc}
-                        </p>
-                        <a
-                          href={service.waHref}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={() =>
-                            trackEvent("service_inquiry", {
-                              service: service.title || service.name,
-                              href: service.waHref,
-                            })
-                          }
-                          className="inline-flex items-center text-sm font-semibold text-slate-800 hover:gap-2 transition-all duration-200"
-                        >
-                          Query on WhatsApp
-                          <ChevronRight className="w-4 h-4 ml-1" />
-                        </a>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              ) : null}
-
-              {/* YouTube / Showcase */}
-              {businessProfile.youtubeVideoUrl && (
-                <section className="animate-slideUp">
-                  <div className="aspect-video w-full overflow-hidden rounded-2xl shadow-xl border border-slate-200 bg-white/60">
-                    <iframe
-                      title="Showcase Video"
-                      width="100%"
-                      height="100%"
-                      src={`https://www.youtube.com/embed/${businessProfile.youtubeVideoUrl}`}
-                      allowFullScreen
-                      className="w-full h-full"
-                    />
-                  </div>
-                </section>
+              {businessProfile.detailedAbout && (
+                <AboutSectionCard
+                  aboutHeading={`About Us`}
+                  about={businessProfile.detailedAbout}
+                />
               )}
+
+              <ServicesSectionCard
+                services={servicesWithWhatsApp}
+                heading={businessProfile.servicesHeading}
+                trackEvent={trackEvent}
+              />
+
+              <VideoShowcaseSection
+                youtubeVideoUrl={businessProfile.youtubeVideoUrl}
+              />
             </div>
           </div>
         </div>
@@ -684,7 +613,7 @@ export default function BusinessProfile() {
         Synconnect Business
       </footer>
 
-      <FeedbackModalInner
+      <FeedbackModal
         visible={showFeedbackModal}
         userRating={userRating}
         onClose={() => {

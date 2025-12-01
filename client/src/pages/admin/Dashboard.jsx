@@ -357,6 +357,25 @@ const ManageUsersView = () => {
   if (isLoading) return <p className="p-6">Loading users...</p>;
   if (isError) return <p className="p-6 text-red-500">Error fetching users.</p>;
 
+  const getUserLink = (user) => {
+    const base = import.meta.env.VITE_APP_DOMAIN_NAME;
+
+    if (user.accountType === "individual") {
+      return `${base}/profile/${user._id}`;
+    }
+
+    return `${base}/${user.accountType}/${user._id}`;
+  };
+
+  const copyToClipboard = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Copied to clipboard!");
+    } catch {
+      toast.error("Failed to copy!");
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="p-6">
@@ -418,6 +437,12 @@ const ManageUsersView = () => {
                   Account Type <SortIcon columnKey="accountType" />
                 </th>
 
+                {/* Payment Status Column */}
+                <th className="p-3 text-left">Payment Status</th>
+
+                {/* User ID Column */}
+                <th className="p-3 text-left">User ID</th>
+
                 {/* Actions Column (no sorting) */}
                 <th className="p-3 text-right">Actions</th>
               </tr>
@@ -463,6 +488,17 @@ const ManageUsersView = () => {
 
                   {/* Account Type */}
                   <td className="p-3 capitalize">{user.accountType}</td>
+
+                  <td>{user.paymentStatus}</td>
+                  <td className="p-3">
+                    <button
+                      onClick={() => copyToClipboard(getUserLink(user))}
+                      className="text-blue-600 underline hover:text-blue-800 break-all"
+                      title="Click to copy link"
+                    >
+                      {getUserLink(user)}
+                    </button>
+                  </td>
 
                   {/* Actions */}
                   <td className="p-3 text-right whitespace-nowrap">

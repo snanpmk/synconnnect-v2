@@ -1,6 +1,6 @@
 // src/pages/profile/MinimalProfile.jsx
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Phone,
   Mail,
@@ -33,6 +33,11 @@ import Input from "../../components/inputs/Input";
 import PhoneInputField from "../../components/inputs/PhoneInput";
 import { defaultPhoneState } from "./setup/constants/InitialFormState";
 import { openSafe } from "./setup/utility/openSage";
+import QuickContacts from "../../components/QuickContacts";
+import AboutSectionCard from "../../components/AboutSectionCard";
+import ServicesSection from "../../components/ServicesSectionCard";
+import ServicesSectionCard from "../../components/ServicesSectionCard";
+import { formatPhoneForWhatsApp } from "../../utils/formatPhoneForWhatsApp";
 
 /* ---------------------------------------------------
     HELPERS
@@ -79,6 +84,8 @@ export default function MinimalProfile() {
     photo: user.profilePhoto?.url,
     cover: user.coverPhoto?.url,
   };
+
+  console.log(user);
 
   const socials =
     (user.socialLinks || [])
@@ -130,7 +137,19 @@ export default function MinimalProfile() {
     },
   ];
 
-  const services = user.services || [];
+  const servicesWithWhatsApp = useMemo(() => {
+    const waNumber = formatPhoneForWhatsApp(user.whatsapp);
+    return (user.services || []).map((service) => {
+      const message = `Hi, I'm interested in the service: ${
+        service.title || service.name
+      }`;
+      const waHref = waNumber
+        ? `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`
+        : `https://wa.me/?text=${encodeURIComponent(message)}`;
+      return { ...service, waHref };
+    });
+  }, [user.services, user.whatsapp]);
+
   const [open, setOpen] = useState(false);
 
   const postConnection = usePostData({
@@ -256,7 +275,7 @@ export default function MinimalProfile() {
         <ContentGrid
           profile={profile}
           actions={actions}
-          services={services}
+          services={servicesWithWhatsApp}
           serviceHeading={user.servicesHeading}
           youtubeId={user.youtubeVideoUrl}
           trackEvent={trackEvent}
@@ -432,14 +451,16 @@ const ContentGrid = ({
   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto ">
     {/* Sidebar */}
     <div className="space-y-6 lg:sticky lg:top-8 lg:h-fit lg:col-span-1">
-      <ContactCard actions={actions} trackEvent={trackEvent} />
-      {profile.about && <AboutCard about={profile.about} />}
+      <QuickContacts actions={actions} trackEvent={trackEvent} />
+      {profile.about && (
+        <AboutSectionCard about={profile.about} aboutHeading={`About Me`} />
+      )}
     </div>
 
     {/* Main content */}
     <div className="lg:col-span-2 space-y-6">
       {services.length > 0 && (
-        <ServicesSection
+        <ServicesSectionCard
           services={services}
           heading={serviceHeading}
           trackEvent={trackEvent}
@@ -448,97 +469,6 @@ const ContentGrid = ({
       {youtubeId && (
         <VideoSection youtubeId={youtubeId} trackEvent={trackEvent} />
       )}
-    </div>
-  </div>
-);
-
-/* ---------------------------------------------------
-    CONTACT CARD
----------------------------------------------------- */
-const ContactCard = ({ actions, trackEvent }) => (
-  <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-    <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2 border-b pb-3 border-gray-200">
-      <Phone size={20} className="text-gray-900" />
-      Quick Actions
-    </h2>
-
-    <div className="space-y-1 pt-2">
-      {actions.map((a, i) => (
-        <button
-          key={i}
-          onClick={() => {
-            trackEvent(a.event, { label: a.label, href: a.href });
-            window.open(
-              a.href,
-              a.label === "Call" || a.label === "Email" ? "_self" : "_blank"
-            );
-          }}
-          className="w-full flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 border-b border-transparent transition group active:bg-gray-100"
-        >
-          {/* Clean, gray/white icon container */}
-          <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-gray-100 transition ring-1 ring-transparent group-hover:ring-gray-300">
-            <a.icon className="text-gray-600 w-5 h-5 group-hover:text-gray-900 transition" />
-          </div>
-          <div className="flex-1 text-left min-w-0">
-            <p className="text-base font-semibold text-gray-900">{a.label}</p>
-            <p className="text-sm text-gray-500 truncate">{a.subtitle}</p>
-          </div>
-          <ChevronRight
-            className="text-gray-400 group-hover:text-gray-900 flex-shrink-0 transition"
-            size={20}
-          />
-        </button>
-      ))}
-    </div>
-  </div>
-);
-
-/* ---------------------------------------------------
-    ABOUT CARD
----------------------------------------------------- */
-const AboutCard = ({ about }) => (
-  <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-    <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2 border-b pb-3 border-gray-200">
-      <Feather size={20} className="text-gray-900" />
-      About Me
-    </h2>
-    <div className="space-y-4 pt-2">
-      {about.split("\n\n").map((p, i) => (
-        <p key={i} className="text-base text-gray-700 leading-relaxed">
-          {p}
-        </p>
-      ))}
-    </div>
-  </div>
-);
-
-/* ---------------------------------------------------
-    SERVICES SECTION
----------------------------------------------------- */
-const ServicesSection = ({ services, heading, trackEvent }) => (
-  <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 border border-gray-200">
-    <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-3 border-b pb-3 border-gray-200">
-      <Briefcase size={20} className="text-gray-900" />
-      {heading || "My Services"}
-    </h2>
-
-    <div className="grid grid-cols-1 gap-3 pt-3">
-      {services.map((s, i) => (
-        <div
-          key={i}
-          onClick={() =>
-            trackEvent(EVENT_TYPES.SERVICE_VIEW, { service: s.title })
-          }
-          className="group p-4 rounded-lg bg-white hover:bg-gray-50/50 border border-gray-200 hover:border-gray-300 cursor-pointer transition-all shadow-sm"
-        >
-          <h3 className="text-lg font-bold text-gray-900 mb-1 group-hover:text-gray-800 transition">
-            {s.title}
-          </h3>
-          <p className="text-sm text-gray-600 leading-relaxed">
-            {s.description}
-          </p>
-        </div>
-      ))}
     </div>
   </div>
 );

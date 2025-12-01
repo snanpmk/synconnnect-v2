@@ -15,7 +15,6 @@ const useGoogleAuthApi = () => {
 
   const onSuccess = (res) => {
     const { user, accessToken, message } = res;
-    console.log(res);
     const userId = getUserIdFromToken(accessToken);
     setUserId(userId);
 
@@ -32,7 +31,28 @@ const useGoogleAuthApi = () => {
 
   const onError = (error) => {
     console.error("Google Auth Code Login Error:", error);
-    toast.error("Login failed. Please try again.", "error");
+    if (error?.response?.data?.message) {
+      const adminContact = import.meta.env.VITE_APP_ADMIN_CONTACT;
+      const whatsappLink = `https://wa.me/${adminContact}?text=Hello,%20I%20need%20assistance%20with%20my%20SynConnect%20account.%20Could%20you%20please%20help%20me%20resolve%20the%20issue?`;
+      toast.error(
+        <div>
+          {error.response.data.message} <br />
+          Please contact support{" "}
+          <a
+            href={whatsappLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "blue", textDecoration: "underline" }}
+          >
+            here
+          </a>
+          .
+        </div>,
+        { duration: 8000 }
+      );
+    } else {
+      toast.error("Login failed. Please try again.", "error");
+    }
   };
 
   const handleGoogleLogin = async (codeResponse) => {

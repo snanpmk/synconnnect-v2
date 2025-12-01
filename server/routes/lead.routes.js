@@ -4,11 +4,12 @@ import {
   getLeadsByUser,
   getLead,
 } from "../controllers/lead.controller.js";
+import { auth } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-router.get("/user", getLeadsByUser);
+router.get("/user", auth, getLeadsByUser);
 
-router.get("/", getLead);
+router.get("/", auth, getLead);
 
 export default router;

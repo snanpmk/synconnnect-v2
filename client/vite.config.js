@@ -12,30 +12,26 @@ export default defineConfig({
       includeAssets: ["favicon.ico", "robots.txt", "apple-touch-icon.png"],
 
       manifest: {
-        name: "Synconnnect",
-        short_name: "Synconnnect",
+        name: "Synconnect",
+        short_name: "Synconnect",
         display: "standalone",
-        background_color: "#000000",
-        theme_color: "#67d861",
         start_url: "/dashboard",
+        theme_color: "#ffffff",
+        background_color: "#ffffff",
         icons: [
           {
-            src: "/pwa-192x192.png",
+            src: "/web-app-manifest-192x192.png",
             sizes: "192x192",
             type: "image/png",
+            purpose: "maskable",
           },
           {
-            src: "/pwa-512x512.png",
+            src: "/web-app-manifest-512x512.png",
             sizes: "512x512",
             type: "image/png",
-          },
-          {
-            src: "/pwa-64x64.png",
-            sizes: "64x64",
-            type: "image/png",
+            purpose: "maskable",
           },
         ],
-
         screenshots: [
           {
             src: "/screenshots/1080x1920-1.jpg",

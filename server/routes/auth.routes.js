@@ -1,6 +1,7 @@
 import express from "express";
 import {
   googleAuthController,
+  logoutController,
   refreshAccessToken,
 } from "../controllers/auth.controller.js";
 const router = express.Router();
@@ -13,9 +14,10 @@ router.post("/register", (req, res) => {
 // Example: Google login
 router.post("/login", googleAuthController);
 
+router.post("/logout", logoutController);
+
 router.get("/refresh", refreshAccessToken);
 
-// Example: Logout
 router.post("/logout", (req, res) => {
   res.json({ message: "User logged out" });
 });

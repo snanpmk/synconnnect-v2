@@ -85,19 +85,30 @@ export const googleAuthController = async (req, res) => {
       path: "/",
     });
 
-    // 5️⃣ Set refresh token in cookie
-    res.cookie("refresh_token", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      path: "/",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    if (user.paymentStatus === "active") {
+      // 5️⃣ Set refresh token in cookie
+      res.cookie("refresh_token", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        path: "/",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+    }
+
+    // 6️⃣ Prepare response
+    if (user.paymentStatus === "pending") {
+      return res.status(403).json({
+        message:
+          "Your account is pending approval. Please contact support for more information.",
+      });
+    }
 
     const responseUser = {
       _id: user._id,
       email: user.email,
       fullName: user.fullName,
+      paymentStatus: user.paymentStatus,
       ...(user.isSuperAdmin && { isSuperAdmin: true }),
     };
 
@@ -147,5 +158,21 @@ export const refreshAccessToken = async (req, res) => {
   } catch (err) {
     console.error("Refresh token error:", err.message);
     res.status(401).json({ message: "Invalid or expired refresh token" });
+  }
+};
+
+export const logoutController = async (req, res) => {
+  try {
+    res.clearCookie("refresh_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      path: "/",
+    });
+
+    res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.error("Logout error:", error);
+    res.status(500).json({ message: "Logout failed", error: error.message });
   }
 };

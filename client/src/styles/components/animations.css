@@ -91,16 +91,18 @@
   }
 }
 
-/* --- SUBTLE FLOAT KEYFRAMES ADDED HERE --- */
 @keyframes float-subtle {
-  0%,
-  100% {
-    transform: translateY(0);
+  0% {
+    transform: translateY(0) rotate(0deg);
   }
   50% {
-    transform: translateY(-4px); /* Moves up 4 pixels */
+    transform: translateY(-4px) rotate(-1.2deg); /* slight tilt */
+  }
+  100% {
+    transform: translateY(0) rotate(0deg);
   }
 }
+
 /* ------------------------------------------ */
 
 /* --------------------------------------------------- */

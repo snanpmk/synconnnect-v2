@@ -338,9 +338,8 @@ const ProfileCardMinimal = ({
   shareProfile,
   openConnect,
 }) => (
-  // Use max-w-lg from the MinimalProfile implementation
   <div className="bg-white rounded-3xl shadow-2xl overflow-hidden mb-8 border border-gray-200 max-w-lg mx-auto">
-    {/* Cover with Vibrant, Dynamic Photo */}
+    {/* Cover */}
     <div className="relative h-48 md:h-56 bg-gray-900 m-2 rounded-2xl overflow-hidden">
       {profile.cover ? (
         <img
@@ -349,36 +348,42 @@ const ProfileCardMinimal = ({
           alt="Cover"
         />
       ) : (
-        <div className="w-full h-full bg-linear-to-br from-indigo-700 via-purple-700 to-pink-600"></div>
+        <div className="w-full h-full bg-linear-to-br from-indigo-700 via-purple-700 to-pink-600 flex items-center justify-center">
+          <span className="text-6xl font-bold text-white">
+            {profile.name ? profile.name.charAt(0) : "U"}
+          </span>
+        </div>
       )}
 
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-black/30"></div>
-
-      {/* Share Icon - Top right */}
+      {/* Share Icon - Top Right */}
       <button
         onClick={shareProfile}
-        className="absolute top-4 right-4 p-2 rounded-lg bg-white/20 backdrop-blur-sm shadow-md text-white hover:bg-white/40 transition active:scale-95"
+        className="absolute top-4 right-4 p-2 rounded-lg 
+                   bg-white/70 backdrop-blur-md
+                   shadow-[0_0_10px_rgba(0,0,0,0.25)]
+                   border border-black/10
+                   text-gray-900 hover:bg-white/90 transition active:scale-95"
         title="Share Profile"
       >
-        <Share2 size={23} />
+        <Share2 size={23} className="drop-shadow-sm" />
       </button>
 
-      {/* Bookmark Icon - Top left */}
+      {/* Save Contact Icon - Top Left */}
       <button
         onClick={saveContact}
-        // Increased opacity to ensure visibility against bright backgrounds
-        className="absolute top-4 left-4 p-2 rounded-lg bg-white/40 backdrop-blur-sm shadow-md hover:bg-white/50 transition active:scale-95"
+        className="absolute top-4 left-4 p-2 rounded-lg 
+                   bg-white/70 backdrop-blur-md
+                   shadow-[0_0_10px_rgba(0,0,0,0.25)]
+                   border border-black/10
+                   text-gray-900 hover:bg-white/90 transition active:scale-95"
         title="Save Contact (VCF Download)"
       >
-        <UserPlus size={23} className="text-white" />
+        <UserPlus size={23} className="drop-shadow-sm" />
       </button>
     </div>
 
     {/* Profile info */}
     <div className="relative px-6 md:px-8 pb-8">
-      {" "}
-      {/* Increased pb-8 for more bottom space */}
       <div className="flex flex-col items-start text-start -mt-16">
         {/* Avatar */}
         <div className="relative animate-float-subtle">
@@ -389,14 +394,13 @@ const ProfileCardMinimal = ({
           />
         </div>
 
-        {/* Name and Designation */}
+        {/* Name + Designation */}
         <div className="pt-4">
-          <h1 className="text-2xl text-start md:text-3xl font-bold text-gray-900 mb-0">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-0">
             {profile.name}
           </h1>
-          <p className="text-lg text-start font-medium **mb-3**">
-            {" "}
-            {/* Adjusted mb-2 to mb-3 for slightly more separation */}
+
+          <p className="text-lg font-medium mb-3">
             <span className="text-slate-600">{profile.designation}</span>
             <span className="text-black px-2">@</span>
             <span className="text-gray-800">{profile.company}</span>
@@ -405,30 +409,24 @@ const ProfileCardMinimal = ({
 
         {/* Tagline */}
         {profile.tagline && (
-          <p className="text-sm text-gray-600 leading-relaxed italic max-w-sm **mb-5**">
-            {" "}
-            {/* Adjusted mb-4 to mb-5 for better separation from socials */}"
-            {profile.tagline}"
+          <p className="text-sm text-gray-600 leading-relaxed italic max-w-sm mb-5">
+            "{profile.tagline}"
           </p>
         )}
 
         {/* Social Icons */}
-        <div className="**mb-6**">
-          {" "}
-          {/* Adjusted mb-4 to mb-6 for better separation from action buttons */}
-          {/* SocialIconsRow must be defined elsewhere and is used here */}
+        <div className="mb-6">
           <SocialIconsRow socials={socials} trackEvent={trackEvent} />
         </div>
       </div>
-      {/* ACTION BUTTONS: Save Contact and Get In Touch */}
+
+      {/* ACTION BUTTONS */}
       <div className="flex gap-3 items-stretch">
-        {" "}
-        {/* Adjusted gap-4 to gap-3 for slightly tighter button spacing if needed, but gap-4 is fine too. Reverted to gap-4 below. */}
         <button
           onClick={openConnect}
           className="flex-1 py-3.5 rounded-full bg-gray-900 text-white font-bold text-lg
-             hover:bg-gray-800 shadow-xl shadow-gray-500/50 transition-all
-             active:scale-[0.98] transform"
+                     hover:bg-gray-800 shadow-xl shadow-gray-500/50 transition-all
+                     active:scale-[0.98] transform"
         >
           Get In Touch
         </button>
@@ -436,6 +434,7 @@ const ProfileCardMinimal = ({
     </div>
   </div>
 );
+
 /* ---------------------------------------------------
     CONTENT GRID
 ---------------------------------------------------- */

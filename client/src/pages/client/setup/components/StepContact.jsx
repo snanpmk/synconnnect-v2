@@ -42,6 +42,7 @@ const StepContact = ({ control, watch, setValue }) => {
         control={control}
         rules={phoneRules}
         type="tel"
+        placeholder="54 514 4220"
       />
 
       <Checkbox
@@ -57,6 +58,7 @@ const StepContact = ({ control, watch, setValue }) => {
         rules={useSameNumber ? {} : phoneRules}
         type="tel"
         disabled={useSameNumber}
+        placeholder="54 514 4220"
       />
 
       <Input

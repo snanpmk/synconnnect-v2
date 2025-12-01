@@ -17,6 +17,7 @@ const PhoneInputField = ({
   control,
   rules,
   disabled = false,
+  placeholder = "",
   ...props
 }) => {
   const defaultCountry = useMemo(
@@ -39,7 +40,7 @@ const PhoneInputField = ({
           <div className="mb-4">
             <label
               htmlFor={name}
-              className=" text-sm font-semibold text-gray-700 mb-1  items-center gap-2"
+              className={`text-sm font-medium text-gray-600 mb-1 flex items-center`}
             >
               {label}
               {rules?.required && <span className="text-red-500">*</span>}
@@ -100,7 +101,7 @@ const PhoneInputField = ({
                   focus:outline-none placeholder-gray-400 
                   ${disabled ? "bg-gray-100 cursor-not-allowed" : "bg-white"}
                 `}
-                placeholder="98765 43210"
+                placeholder={placeholder}
                 {...props}
               />
             </div>

@@ -280,16 +280,13 @@ export default function MinimalProfile() {
           youtubeId={user.youtubeVideoUrl}
           trackEvent={trackEvent}
         />
-
-        {
-          <ConnectModal
-            close={() => setOpen(false)}
-            control={control}
-            open={open}
-            submit={handleSubmit(submit)}
-            isSubmitting={formState.isSubmitting}
-          />
-        }
+        <ConnectModal
+          close={() => setOpen(false)}
+          control={control}
+          open={open}
+          submit={handleSubmit(submit)}
+          isSubmitting={formState.isSubmitting}
+        />
       </div>
     </div>
   );
@@ -558,6 +555,7 @@ const ConnectModal = ({ close, open, control, submit, isSubmitting }) => (
           control={control}
           rules={{ required: "Required" }}
           inputClass="bg-white border-gray-300 focus:border-gray-900 focus:ring-gray-900 shadow-sm"
+          placeholder="54 514 4220"
         />
 
         <div className="flex gap-4 pt-2">

@@ -23,7 +23,7 @@ const StepMediaAndReview = ({ control, userType }) => {
       )}
 
       <PhotoUpload
-        name="coverPhoto" // This registers the field with RHF
+        name="coverPhoto"
         label="Cover Photo"
         control={control}
         aspectRatio={"landscape"}
@@ -32,17 +32,17 @@ const StepMediaAndReview = ({ control, userType }) => {
       />
       <Input
         name="youtubeVideoUrl"
-        label="YouTube Video ID (Optional)"
+        label="YouTube Video Link"
         icon={FaYoutube}
-        control={control} // Added control prop
-        placeholder="e.g., jndWxpCzO5g"
+        control={control}
+        placeholder="click the share button,copy and paste the link here"
       />
       {businessUser && (
         <Input
           name="googleReviewLink"
           label="Public Review Link (Optional)"
           icon={Star}
-          control={control} // Added control prop
+          control={control}
           placeholder="e.g., https://g.page/r/..."
           // rules with proper regex pattern to look like a proper link
           rules={{

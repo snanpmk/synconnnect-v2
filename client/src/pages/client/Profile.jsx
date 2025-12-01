@@ -38,6 +38,8 @@ import AboutSectionCard from "../../components/AboutSectionCard";
 import ServicesSection from "../../components/ServicesSectionCard";
 import ServicesSectionCard from "../../components/ServicesSectionCard";
 import { formatPhoneForWhatsApp } from "../../utils/formatPhoneForWhatsApp";
+import { FiYoutube } from "react-icons/fi";
+import VideoSectionCard from "../../components/VideoSectionCard";
 
 /* ---------------------------------------------------
     HELPERS
@@ -464,41 +466,8 @@ const ContentGrid = ({
         />
       )}
       {youtubeId && (
-        <VideoSection youtubeId={youtubeId} trackEvent={trackEvent} />
+        <VideoSectionCard youtubeId={youtubeId} trackEvent={trackEvent} />
       )}
-    </div>
-  </div>
-);
-
-/* ---------------------------------------------------
-    VIDEO SECTION
----------------------------------------------------- */
-const VideoSection = ({ youtubeId, trackEvent }) => (
-  <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 border border-gray-200">
-    <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-3 border-b pb-3 border-gray-200">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="text-gray-900 w-6 h-6"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-      >
-        <path d="M21.5 6.096c-.347-1.144-1.298-2.096-2.441-2.442C17.7 3 12 3 12 3S6.3 3 4.941 3.654C3.798 4.001 2.847 4.953 2.5 6.096c-.654 2.217-.654 6.783-.654 6.783s0 4.566.654 6.783c.347 1.144 1.298 2.096 2.441 2.442C6.3 22 12 22 12 22s5.7 0 7.059-.654c1.143-.346 2.094-1.298 2.441-2.442c.654-2.217.654-6.783.654-6.783s0-4.566-.654-6.783zm-14.5 10V7.999L16 12l-8.999 4.096z" />
-      </svg>
-      Introduction Video
-    </h2>
-
-    <div
-      onClick={() => trackEvent(EVENT_TYPES.YOUTUBE_OPEN)}
-      className="aspect-video rounded-lg overflow-hidden cursor-pointer transition-all shadow-xl hover:shadow-2xl border border-gray-200"
-    >
-      <iframe
-        src={`https://www.youtube.com/embed/${youtubeId}`}
-        className="w-full h-full"
-        allowFullScreen
-        title="Introduction Video"
-        frameBorder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-      />
     </div>
   </div>
 );
@@ -582,7 +551,7 @@ const ConnectModal = ({ close, open, control, submit, isSubmitting }) => (
               "Sending..."
             ) : (
               <>
-                <Send size={20} /> {/* Send icon */}
+                <Send size={20} />
                 Send
               </>
             )}

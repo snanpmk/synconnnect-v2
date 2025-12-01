@@ -22,6 +22,7 @@ let refreshPromise = null;
 // APIs that NEVER need token
 const SKIP_REFRESH_URLS = [
   "/auth/login",
+  "/auth/logout",
   "/auth/google",
   "/auth/register",
   "/auth/refresh",

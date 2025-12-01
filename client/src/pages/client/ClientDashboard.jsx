@@ -16,6 +16,7 @@ import {
   MessageCircle,
   Copy,
   ExternalLink,
+  LogOut,
 } from "lucide-react";
 
 import {
@@ -41,6 +42,7 @@ import { RATING_COLORS } from "../../constants/ratingColors";
 import { formatDate } from "../../utils/formatDate";
 import useUserDetailStore from "./setup/store/useUserDetailStore";
 import useAuthStore from "../../store/useAuthStore";
+import usePostData from "../../api/usePostData";
 
 const ICON_BG = {
   blue: "text-blue-600 bg-blue-50",
@@ -168,38 +170,70 @@ const MetricCard = ({
 /* -------------------------
    Header
    -------------------------*/
-const DashboardHeader = ({ range, setRange }) => (
-  <div className="bg-white border-b border-gray-200 sticky top-0 z-20 shadow-sm">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-            Performance Analytics
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Full profile performance overview
-          </p>
-        </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <select
-            value={range}
-            onChange={(e) => setRange(e.target.value)}
-            className="appearance-none bg-white border border-gray-300 rounded-lg pl-4 pr-10 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow w-full sm:w-auto"
-            aria-label="Select range"
-          >
-            {RANGE_OPTIONS.map((opt) => (
-              <option key={opt.key} value={opt.key}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="w-4 h-4 text-gray-400 pointer-events-none -ml-8" />
+const DashboardHeader = ({ range, setRange }) => {
+  const logoutMutation = usePostData({
+    onSuccess: () => {
+      // Clear tokens/local storage etc.
+      localStorage.removeItem("accessToken");
+      window.location.href = "/login"; // redirect
+    },
+  });
+
+  const handleLogout = () => {
+    logoutMutation.mutate({
+      url: "/auth/logout",
+      method: "POST",
+      data: {},
+    });
+  };
+
+  return (
+    <div className="bg-white border-b border-gray-200 sticky top-0 z-20 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          {/* Left */}
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+              Performance Analytics
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Full profile performance overview
+            </p>
+          </div>
+
+          {/* Right Tools */}
+          <div className="flex items-center justify-between gap-3 w-full sm:w-auto">
+            {/* Range Selector */}
+            <div className="relative">
+              <select
+                value={range}
+                onChange={(e) => setRange(e.target.value)}
+                className="appearance-none bg-white border border-gray-300 rounded-lg pl-4 pr-10 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+              >
+                {RANGE_OPTIONS.map((opt) => (
+                  <option key={opt.key} value={opt.key}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+
+            {/* Logout Icon */}
+            <button
+              onClick={handleLogout}
+              className="p-2 rounded-lg hover:bg-red-50 transition border border-red-200"
+              aria-label="Logout"
+            >
+              <LogOut className="w-5 h-5 text-red-500" />
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 /* -------------------------
    Charts

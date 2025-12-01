@@ -18,8 +18,6 @@ router.post("/logout", logoutController);
 
 router.get("/refresh", refreshAccessToken);
 
-router.post("/logout", (req, res) => {
-  res.json({ message: "User logged out" });
-});
+
 
 export default router;

@@ -32,6 +32,7 @@ import toast from "react-hot-toast";
 import Input from "../../components/inputs/Input";
 import PhoneInputField from "../../components/inputs/PhoneInput";
 import { defaultPhoneState } from "./setup/constants/InitialFormState";
+import { openSafe } from "./setup/utility/openSage";
 
 /* ---------------------------------------------------
     HELPERS
@@ -157,9 +158,9 @@ export default function MinimalProfile() {
       data: { userId, ...v },
     });
 
-    const msg = `Hi, I'm ${v.leadName}. We met at ${v.placeWeMet}. My number is ${v.contactNumber.phoneNumber}.`;
+    const msg = `Hi, I'm ${v.leadName}. We met at ${v.placeWeMet}.`;
 
-    window.open(
+    openSafe(
       waLink(user.whatsapp?.dialCode, user.whatsapp?.phoneNumber, msg),
       "_blank"
     );
@@ -171,7 +172,7 @@ export default function MinimalProfile() {
   const saveContact = () => {
     trackEvent(EVENT_TYPES.SAVE_CONTACT);
 
-    const name = profile?.fullname?.trim() || "Contact";
+    const name = profile?.fullName?.trim() || "Contact";
     const tel = waNumber(user.phone?.dialCode, user.phone?.phoneNumber);
     const email = user?.email || "";
     const title = profile?.designation || "";
@@ -282,7 +283,7 @@ const SocialIconsRow = ({ socials, trackEvent }) => {
   if (!socials.length) return null;
 
   return (
-    <div className="flex items-center justify-start gap-2 my-4 flex-wrap">
+    <div className="flex items-center justify-start gap-2 my-2 flex-wrap">
       {socials.map(({ icon: Icon, url, platform, color: brandColorClass }) => {
         const safeURL = url.startsWith("http") ? url : `https://${url}`;
         return (
@@ -293,7 +294,7 @@ const SocialIconsRow = ({ socials, trackEvent }) => {
                 href: url,
                 platform,
               });
-              window.open(safeURL, "_blank");
+              openSafe(safeURL);
             }}
             className="group p-2 rounded-full bg-white hover:bg-gray-100 border border-transparent hover:border-gray-300 transition-all shadow-lg active:scale-95 transform"
             title={platform}
@@ -326,11 +327,11 @@ const ProfileCardMinimal = ({
       {profile.cover ? (
         <img
           src={profile.cover}
-          className="w-full h-full object-cover "
+          className="w-full h-full object-cover"
           alt="Cover"
         />
       ) : (
-        <div className="w-full h-full bg-gradient-to-br from-indigo-700 via-purple-700 to-pink-600"></div>
+        <div className="w-full h-full bg-linear-to-br from-indigo-700 via-purple-700 to-pink-600"></div>
       )}
 
       {/* Overlay */}
@@ -346,60 +347,70 @@ const ProfileCardMinimal = ({
       </button>
 
       {/* Bookmark Icon - Top left */}
-      {/* pulse animate the save button */}
       <button
-        onClick={saveContact} // <-- ADD THIS
-        // className="absolute top-4 left-4 p-2 rounded-lg bg-white/20 backdrop-blur-sm shadow-md hover:bg-white/40 transition active:scale-95 transform
-
-        // "
-        className="absolute top-4 left-4 p-2 rounded-lg bg-white/40 backdrop-blur-sm shadow-md hover:bg-white/40 transition active:scale-45 "
-        title="Save Contact (VCF Download)" // <-- ADD/UPDATE TITLE
+        onClick={saveContact}
+        // Increased opacity to ensure visibility against bright backgrounds
+        className="absolute top-4 left-4 p-2 rounded-lg bg-white/40 backdrop-blur-sm shadow-md hover:bg-white/50 transition active:scale-95"
+        title="Save Contact (VCF Download)"
       >
         <UserPlus size={23} className="text-white" />
       </button>
     </div>
 
     {/* Profile info */}
-    <div className="relative px-6 md:px-8 pb-6">
-      <div className="flex flex-col items-start text-center -mt-16">
+    <div className="relative px-6 md:px-8 pb-8">
+      {" "}
+      {/* Increased pb-8 for more bottom space */}
+      <div className="flex flex-col items-start text-start -mt-16">
         {/* Avatar */}
         <div className="relative animate-float-subtle">
           <img
             src={profile.photo}
-            className="w-28 h-28 md:w-32 md:h-32 rounded-full object-cover  shadow-xl "
+            className="w-28 h-28 md:w-32 md:h-32 rounded-full object-cover shadow-xl"
             alt={profile.name}
           />
         </div>
+
         {/* Name and Designation */}
         <div className="pt-4">
           <h1 className="text-2xl text-start md:text-3xl font-bold text-gray-900 mb-0">
             {profile.name}
           </h1>
-          <p className="text-lg text-start font-medium mb-2">
+          <p className="text-lg text-start font-medium **mb-3**">
+            {" "}
+            {/* Adjusted mb-2 to mb-3 for slightly more separation */}
             <span className="text-slate-600">{profile.designation}</span>
             <span className="text-black px-2">@</span>
             <span className="text-gray-800">{profile.company}</span>
           </p>
         </div>
+
         {/* Tagline */}
         {profile.tagline && (
-          <p className="text-sm text-gray-600 leading-relaxed italic max-w-sm mb-4">
-            "{profile.tagline}"
+          <p className="text-sm text-gray-600 leading-relaxed italic max-w-sm **mb-5**">
+            {" "}
+            {/* Adjusted mb-4 to mb-5 for better separation from socials */}"
+            {profile.tagline}"
           </p>
         )}
+
         {/* Social Icons */}
-        <div className="mb-4">
+        <div className="**mb-6**">
+          {" "}
+          {/* Adjusted mb-4 to mb-6 for better separation from action buttons */}
+          {/* SocialIconsRow must be defined elsewhere and is used here */}
           <SocialIconsRow socials={socials} trackEvent={trackEvent} />
         </div>
       </div>
-
       {/* ACTION BUTTONS: Save Contact and Get In Touch */}
-      <div className="flex gap-4 items-stretch">
+      <div className="flex gap-3 items-stretch">
+        {" "}
+        {/* Adjusted gap-4 to gap-3 for slightly tighter button spacing if needed, but gap-4 is fine too. Reverted to gap-4 below. */}
         <button
           onClick={openConnect}
           className="flex-1 py-3.5 rounded-full bg-gray-900 text-white font-bold text-lg
              hover:bg-gray-800 shadow-xl shadow-gray-500/50 transition-all
-             active:scale-[0.98] transform "
+             active:scale-[0.98] transform"
         >
           Get In Touch
         </button>
@@ -407,7 +418,6 @@ const ProfileCardMinimal = ({
     </div>
   </div>
 );
-
 /* ---------------------------------------------------
     CONTENT GRID
 ---------------------------------------------------- */

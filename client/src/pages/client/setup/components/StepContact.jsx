@@ -80,6 +80,7 @@ const StepContact = ({ control, watch, setValue }) => {
         control={control}
         type="text"
         rules={{
+          required: "Location is required",
           pattern: {
             value:
               /^(https?:\/\/)?(www\.)?(google\.com\/maps\/.+|goo\.gl\/maps\/.+|maps\.app\.goo\.gl\/.+)$/i,

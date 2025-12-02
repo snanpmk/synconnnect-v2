@@ -26,16 +26,29 @@ const LoginHeader = () => {
   );
 };
 
-const GoogleSignInButton = ({ onLogin }) => (
+const GoogleSignInButton = ({ onLogin, isLoginPending }) => (
   <div className="flex w-full justify-center">
     <button
       onClick={onLogin}
+      disabled={isLoginPending}
       className="border border-neutral-50 cursor-pointer flex items-center justify-center gap-3 w-full sm:w-80 glass-card transition-all duration-200 font-medium py-2.5 sm:py-3 rounded-xl mt-7 shadow-md"
     >
-      <img src={googleIcon} alt="Google Icon" className="w-[30px] h-[30px]" />
-      <span className="text-sm sm:text-base font-semibold text-gray-100">
-        Sign in with Google
-      </span>
+      {isLoginPending ? (
+        <span className="text-sm sm:text-base font-semibold text-gray-100">
+          Signing in...
+        </span>
+      ) : (
+        <>
+          <img
+            src={googleIcon}
+            alt="Google Icon"
+            className="w-[30px] h-[30px]"
+          />
+          <span className="text-sm sm:text-base font-semibold text-gray-100">
+            Sign in with Google
+          </span>
+        </>
+      )}
     </button>
   </div>
 );
@@ -68,11 +81,11 @@ const TermsAndPrivacyInfo = () => (
   </div>
 );
 
-const LoginCard = ({ onLogin }) => (
+const LoginCard = ({ onLogin, isLoginPending }) => (
   <div className="">
     <LoginHeader />
     <div className="space-y-4 sm:space-y-6">
-      <GoogleSignInButton onLogin={onLogin} />
+      <GoogleSignInButton isLoginPending={isLoginPending} onLogin={onLogin} />
       <Divider />
       <TermsAndPrivacyInfo />
     </div>
@@ -109,11 +122,11 @@ const LoginBackgroundWrapper = ({ children }) => (
 );
 
 const LoginPage = () => {
-  const { onLogin } = useGoogleAuthApi();
+  const { onLogin, isLoginPending } = useGoogleAuthApi();
 
   return (
     <LoginBackgroundWrapper>
-      <LoginCard onLogin={onLogin} />
+      <LoginCard isLoginPending={isLoginPending} onLogin={onLogin} />
       <LoginFooter />
     </LoginBackgroundWrapper>
   );

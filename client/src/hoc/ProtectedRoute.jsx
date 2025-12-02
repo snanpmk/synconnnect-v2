@@ -19,7 +19,7 @@ const ProtectedRoute = ({ children }) => {
           const newToken = await getAccessTokenFromRefresh();
           if (newToken) {
             setAccessToken(newToken);
-            const userId = getUserIdFromToken(newToken);            
+            const userId = getUserIdFromToken(newToken);
             setUserId(userId);
           }
         } catch (error) {
@@ -33,7 +33,7 @@ const ProtectedRoute = ({ children }) => {
     } else {
       setIsLoading(false);
     }
-  }, [isLoggedIn, setAccessToken]);
+  }, [isLoggedIn, setUserId, setAccessToken]);
 
   if (isLoading) {
     return (
@@ -96,7 +96,7 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  if (!useAuthStore.getState().accessToken) {
+  if (!useAuthStore.getState().accessToken && !isLoading) {
     return <Navigate to={"/login"} replace />;
   }
 

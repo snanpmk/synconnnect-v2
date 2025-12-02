@@ -12,6 +12,7 @@ const useGoogleAuthApi = () => {
   const navigate = useNavigate();
 
   const googleLoginMutation = usePostData({});
+  const isLoginPending = googleLoginMutation.isPending;
 
   const onSuccess = (res) => {
     const { user, accessToken, message } = res;
@@ -78,7 +79,7 @@ const useGoogleAuthApi = () => {
     flow: "auth-code",
   });
 
-  return { onLogin };
+  return { onLogin, isLoginPending };
 };
 
 export default useGoogleAuthApi;

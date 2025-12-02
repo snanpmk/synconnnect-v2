@@ -1,9 +1,8 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import { Controller } from "react-hook-form";
-import { FiPhone } from "react-icons/fi";
+import { FiChevronDown } from "react-icons/fi";
+import { createPortal } from "react-dom";
 import { COUNTRIES_DATA } from "../../constants/countries";
-
-const Phone = FiPhone;
 
 const defaultPhoneState = {
   countryCode: "IN",
@@ -20,10 +19,55 @@ const PhoneInputField = ({
   placeholder = "",
   ...props
 }) => {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [position, setPosition] = useState(null);
+  const triggerRef = useRef(null);
+
   const defaultCountry = useMemo(
     () => COUNTRIES_DATA.find((c) => c.code === "IN") || COUNTRIES_DATA[0],
     []
   );
+
+  const filteredCountries = useMemo(() => {
+    const q = search.toLowerCase();
+    return COUNTRIES_DATA.filter(
+      (c) =>
+        c.label.toLowerCase().includes(q) ||
+        c.dialCode.includes(q) ||
+        c.code.toLowerCase().includes(q)
+    );
+  }, [search]);
+
+  // Close when clicking outside
+  useEffect(() => {
+    const handler = (e) => {
+      if (!triggerRef.current) return;
+      if (
+        !triggerRef.current.contains(e.target) &&
+        !document.getElementById("dropdown-root")?.contains(e.target)
+      ) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const openDropdown = () => {
+    if (!triggerRef.current || disabled) return;
+
+    const rect = triggerRef.current.getBoundingClientRect();
+
+    setPosition({
+      top: rect.bottom + 6,
+      left: rect.left,
+      width: rect.width,
+    });
+
+    setOpen(true);
+    setSearch(""); // reset search
+  };
 
   return (
     <Controller
@@ -37,74 +81,103 @@ const PhoneInputField = ({
           defaultCountry;
 
         return (
-          <div className="mb-4">
-            <label
-              htmlFor={name}
-              className={`text-sm font-medium text-gray-600 mb-1 flex items-center`}
-            >
+          <div className="mb-4 relative">
+            <label className="text-sm font-medium text-gray-600 mb-1 flex items-center">
               {label}
               {rules?.required && <span className="text-red-500">*</span>}
             </label>
 
-            {/* This container must have w-full to match the width of the Input component */}
             <div
-              className={`flex items-center w-full bg-white rounded-xl border transition-all duration-200 ${
+              className={`flex items-center w-full bg-white rounded-xl border transition-all ${
                 error
                   ? "border-red-500 shadow-sm"
                   : "border-gray-300 hover:border-gray-400 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20"
               }`}
+              ref={triggerRef}
             >
-              {/* Country Dropdown */}
-              <select
-                disabled={disabled}
-                value={selectedCountry.code}
-                onChange={(e) => {
-                  const selected = COUNTRIES_DATA.find(
-                    (c) => c.code === e.target.value
-                  );
-                  onChange({
-                    ...value,
-                    countryCode: selected.code,
-                    dialCode: selected.dialCode,
-                  });
-                }}
-                // FIX: Setting width back to w-[100px]. This is often the tightest width for flags + dial code.
-                className={`
-                  px-3 py-3 text-sm w-[120px] bg-transparent border-r border-gray-200 
-                  focus:outline-none cursor-pointer rounded-l-xl
-                  ${
-                    disabled
-                      ? "bg-gray-100 text-gray-500 cursor-not-allowed"
-                      : ""
-                  }
-                `}
+              {/* COUNTRY SELECT (CLICK TO OPEN DROPDOWN) */}
+              <div
+                className={`px-3 py-3 w-[140px] border-r border-gray-200 rounded-l-xl cursor-pointer flex items-center justify-between ${
+                  disabled && "bg-gray-100 cursor-not-allowed"
+                }`}
+                onClick={openDropdown}
               >
-                {COUNTRIES_DATA.map((country) => (
-                  <option key={country.code} value={country.code}>
-                    {country.flag} {country.dialCode}
-                  </option>
-                ))}
-              </select>
+                <span className="text-sm">
+                  {selectedCountry.flag} {selectedCountry.dialCode}
+                </span>
+                <FiChevronDown className="ml-2 text-gray-500" />
+              </div>
 
-              {/* Phone Number Input */}
+              {/* PHONE INPUT */}
               <input
                 type="tel"
-                id={name}
                 disabled={disabled}
                 value={value?.phoneNumber || ""}
                 onChange={(e) =>
                   onChange({ ...value, phoneNumber: e.target.value })
                 }
-                // flex-1 ensures this input takes up all remaining space.
-                className={`
-                  w-full px-3 py-3 text-sm rounded-r-xl bg-transparent
-                  focus:outline-none placeholder-gray-400 
-                  ${disabled ? "bg-gray-100 cursor-not-allowed" : "bg-white"}
-                `}
+                className={`w-full px-3 py-3 text-sm rounded-r-xl bg-transparent focus:outline-none placeholder-gray-400 ${
+                  disabled ? "bg-gray-100 cursor-not-allowed" : "bg-white"
+                }`}
                 placeholder={placeholder}
                 {...props}
               />
             </div>
+
+            {/* MODAL-SAFE DROPDOWN (PORTAL) */}
+            {open &&
+              position &&
+              createPortal(
+                <div
+                  className="z-[9999] bg-white border border-gray-300 rounded-xl shadow-xl p-2"
+                  style={{
+                    position: "fixed",
+                    top: position.top,
+                    left: position.left,
+                    width: position.width,
+                  }}
+                >
+                  {/* SEARCH INPUT */}
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search country..."
+                    className="w-full px-3 py-2 mb-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:outline-none"
+                  />
+
+                  {/* LIST */}
+                  <div className="max-h-56 overflow-y-auto">
+                    {filteredCountries.map((country) => (
+                      <div
+                        key={country.code}
+                        onClick={() => {
+                          onChange({
+                            ...value,
+                            countryCode: country.code,
+                            dialCode: country.dialCode,
+                          });
+                          setOpen(false);
+                        }}
+                        className="px-3 py-2 cursor-pointer hover:bg-gray-100 rounded-lg text-sm flex items-center gap-2"
+                      >
+                        <span>{country.flag}</span>
+                        <span>{country.label}</span>
+                        <span className="ml-auto text-gray-500">
+                          {country.dialCode}
+                        </span>
+                      </div>
+                    ))}
+
+                    {filteredCountries.length === 0 && (
+                      <p className="text-center text-gray-400 py-2 text-sm">
+                        No results found
+                      </p>
+                    )}
+                  </div>
+                </div>,
+                document.getElementById("dropdown-root")
+              )}
 
             {error && (
               <p className="mt-1 text-xs text-red-500">{error.message}</p>

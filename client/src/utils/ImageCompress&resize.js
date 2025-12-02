@@ -22,7 +22,7 @@ export const fileToImage = (file) => {
 
 /**
  * ------------------------------
- * 2. Resize using Canvas
+ * 2. Resize using Canvas (NO STRETCHING)
  * ------------------------------
  */
 export const resizeImage = (
@@ -40,10 +40,22 @@ export const resizeImage = (
     let targetWidth = width;
     let targetHeight = height;
 
-    // Auto-calc height if keep aspect
-    if (!height && preserveAspectRatio) {
-      const ratio = image.width / image.height;
-      targetHeight = Math.round(width / ratio);
+    const originalRatio = image.width / image.height;
+
+    // Maintain aspect ratio correctly
+    if (preserveAspectRatio) {
+      if (width && !height) {
+        targetHeight = Math.round(width / originalRatio);
+      } else if (!width && height) {
+        targetWidth = Math.round(height * originalRatio);
+      } else if (width && height) {
+        // bounding box behavior
+        if (image.width / width > image.height / height) {
+          targetHeight = Math.round(width / originalRatio);
+        } else {
+          targetWidth = Math.round(height * originalRatio);
+        }
+      }
     }
 
     const canvas = document.createElement("canvas");
@@ -55,12 +67,11 @@ export const resizeImage = (
 
     canvas.toBlob(
       (blob) => {
-        resolve(
-          new File([blob], fileName, {
-            type: outputType,
-            lastModified: Date.now(),
-          })
-        );
+        const file = new File([blob], fileName, {
+          type: outputType,
+          lastModified: Date.now(),
+        });
+        resolve({ file, width: targetWidth, height: targetHeight });
       },
       outputType,
       quality
@@ -70,19 +81,24 @@ export const resizeImage = (
 
 /**
  * ------------------------------
- * 3. Compression Loop
+ * 3. Compression Loop (Dimension-Safe)
  * ------------------------------
  */
-export const compressImage = (file, maxKB = 500) => {
+export const compressImage = (file, maxKB = 500, dimensions) => {
+  const { width, height } = dimensions;
+
   return new Promise(async (resolve, reject) => {
     let quality = 1.0;
     let compressed = file;
 
-    const compressOnce = (file, quality) =>
+    const compressOnce = (file, q) =>
       new Promise((resolve, reject) => {
         new Compressor(file, {
-          quality,
+          quality: q,
           convertSize: 0,
+          resize: "none", // 🔥 critical: disable its resizing logic
+          width, // 🔥 force same width
+          height, // 🔥 force same height
           success: resolve,
           error: reject,
         });
@@ -91,7 +107,7 @@ export const compressImage = (file, maxKB = 500) => {
     try {
       while (compressed.size > maxKB * 1024 && quality > 0.1) {
         quality -= 0.1;
-        compressed = await compressOnce(file, quality);
+        compressed = await compressOnce(compressed, quality);
       }
 
       resolve(
@@ -108,13 +124,13 @@ export const compressImage = (file, maxKB = 500) => {
 
 /**
  * ------------------------------
- * 4. Master processImage (using unified IMAGE_CONFIG)
+ * 4. Master processImage (Final Pipeline)
  * ------------------------------
  */
 export const processImage = async (
   file,
   type,
-  { maxKB = 500, preserveAspectRatio = false, outputType = "image/jpeg" } = {}
+  { maxKB = 500, preserveAspectRatio = true, outputType = "image/jpeg" } = {}
 ) => {
   try {
     if (!(file instanceof File)) {
@@ -126,20 +142,26 @@ export const processImage = async (
 
     const image = await fileToImage(file);
 
-    // 1. RESIZE using unified config
-    const resizedFile = await resizeImage(image, {
+    // 1. Resize (returns file + dimensions)
+    const {
+      file: resizedFile,
+      width,
+      height,
+    } = await resizeImage(image, {
       width: config.width,
       height: config.height,
-      outputType,
       preserveAspectRatio,
+      outputType,
       fileName: file.name,
     });
 
-    // 2. IF already small enough → return
     if (resizedFile.size / 1024 <= maxKB) return resizedFile;
 
-    // 3. COMPRESS LOWER SIZE
-    const compressed = await compressImage(resizedFile, maxKB);
+    // 3. Compress with dimension safety
+    const compressed = await compressImage(resizedFile, maxKB, {
+      width,
+      height,
+    });
 
     return compressed;
   } catch (error) {

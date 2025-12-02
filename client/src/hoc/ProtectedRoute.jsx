@@ -19,12 +19,7 @@ const ProtectedRoute = ({ children }) => {
           const newToken = await getAccessTokenFromRefresh();
           if (newToken) {
             setAccessToken(newToken);
-            // set user id in state
-            console.log(newToken);
-
-            const userId = getUserIdFromToken(newToken);
-            console.log(userId);
-            
+            const userId = getUserIdFromToken(newToken);            
             setUserId(userId);
           }
         } catch (error) {

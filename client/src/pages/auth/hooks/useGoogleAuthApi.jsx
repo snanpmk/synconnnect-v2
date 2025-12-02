@@ -33,7 +33,7 @@ const useGoogleAuthApi = () => {
     console.error("Google Auth Code Login Error:", error);
     if (error?.response?.data?.message) {
       const adminContact = import.meta.env.VITE_APP_ADMIN_CONTACT;
-      const whatsappLink = `https://wa.me/${adminContact}?text=Hello,%20I%20need%20assistance%20with%20my%20SynConnect%20account.%20Could%20you%20please%20help%20me%20resolve%20the%20issue?`;
+      const whatsappLink = `https://wa.me/${adminContact}?text=Hello,%20I’m%20interested%20in%20subscribing%20to%20SynConnect.%20Kindly%20assist%20me%20with%20the%20subscription%20details.`;
       toast.error(
         <div>
           {error.response.data.message} <br />

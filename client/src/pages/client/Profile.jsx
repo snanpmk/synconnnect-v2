@@ -193,37 +193,42 @@ export default function MinimalProfile() {
   const saveContact = () => {
     trackEvent(EVENT_TYPES.SAVE_CONTACT);
 
-    const name = profile?.fullName?.trim() || "Contact";
+    const fullName = profile?.name?.trim() || "Contact";
+
+    // --- Split fullName into first + last ---
+    const nameParts = fullName.split(" ");
+    const first = nameParts[0] || "";
+    const last = nameParts.slice(1).join(" ") || ""; // everything after first space
+
+    // --- Rest of your data ---
     const tel = waNumber(user.phone?.dialCode, user.phone?.phoneNumber);
     const email = user?.email || "";
     const title = profile?.designation || "";
     const company = profile?.company || "";
-    const photo = profile?.photo || ""; // This is often tricky for VCF, using URI if available
+    const photo = profile?.photo || "";
 
-    // Build vCard (no unnecessary spaces, clean formatting)
+    // --- Build vCard with proper N: field ---
     const vcfLines = [
       "BEGIN:VCARD",
       "VERSION:3.0",
-      `FN:${name}`,
-      company ? `ORG:${company}` : `ORG:${name}`,
+      `FN:${fullName}`,
+      `N:${last};${first};;;`,
+      company ? `ORG:${company}` : `ORG:${fullName}`,
       title ? `TITLE:${title}` : "",
       `TEL;TYPE=CELL:${tel}`,
       email ? `EMAIL;TYPE=WORK:${email}` : "",
-      // Photo line is included here but may not work universally for all clients
       photo ? `PHOTO;VALUE=URI:${photo}` : "",
       "END:VCARD",
     ];
 
     const vcf = vcfLines.filter(Boolean).join("\n");
 
-    // Create a Blob with the correct MIME type
     const file = new Blob([vcf], { type: "text/x-vcard;charset=utf-8" });
     const url = URL.createObjectURL(file);
 
-    // Trigger download
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${name}.vcf`;
+    a.download = `${fullName}.vcf`;
 
     document.body.appendChild(a);
     a.click();
@@ -340,7 +345,7 @@ const ProfileCardMinimal = ({
 }) => (
   <div className="bg-white rounded-3xl shadow-2xl overflow-hidden mb-8 border border-gray-200 max-w-lg mx-auto">
     {/* Cover */}
-    <div className="relative h-48 md:h-56 bg-gray-900 m-2 rounded-2xl overflow-hidden">
+    <div className="relative  h-48 md:h-56 bg-gray-900 m-2 rounded-2xl overflow-hidden">
       {profile.cover ? (
         <img
           src={profile.cover}
@@ -372,10 +377,10 @@ const ProfileCardMinimal = ({
       <button
         onClick={saveContact}
         className="absolute top-4 left-4 p-2 rounded-lg 
-                   bg-white/70 backdrop-blur-md
-                   shadow-[0_0_10px_rgba(0,0,0,0.25)]
-                   border border-black/10
-                   text-gray-900 hover:bg-white/90 transition active:scale-95"
+        bg-white/70 backdrop-blur-md
+        shadow-[0_0_10px_rgba(0,0,0,0.25)]
+        border border-black/10
+        text-gray-900 hover:bg-white/90 transition active:scale-95"
         title="Save Contact (VCF Download)"
       >
         <UserPlus size={23} className="drop-shadow-sm" />
